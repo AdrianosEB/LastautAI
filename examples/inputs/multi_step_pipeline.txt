@@ -1,0 +1,1 @@
+Fetch the latest logs from the server, filter for errors, summarize the findings, and post the summary to the Slack #alerts channel.

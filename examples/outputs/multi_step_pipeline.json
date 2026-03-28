@@ -1,0 +1,77 @@
+{
+  "name": "Log Error Summary Pipeline",
+  "trigger": {
+    "type": "manual",
+    "config": {
+      "cron": null,
+      "event_type": null,
+      "webhook_path": null
+    }
+  },
+  "steps": [
+    {
+      "id": "step_1",
+      "action": "fetch_data",
+      "description": "Fetch the latest logs from the server",
+      "inputs": {
+        "source": "server_logs"
+      },
+      "outputs": {
+        "data": "object"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "step_2",
+      "action": "transform_data",
+      "description": "Filter for errors",
+      "inputs": {
+        "data": "${step_1.data}",
+        "operation": "filter_errors"
+      },
+      "outputs": {
+        "transformed_data": "object"
+      },
+      "dependencies": ["step_1"]
+    },
+    {
+      "id": "step_3",
+      "action": "transform_data",
+      "description": "Summarize the findings",
+      "inputs": {
+        "data": "${step_2.transformed_data}",
+        "operation": "summarize"
+      },
+      "outputs": {
+        "transformed_data": "object"
+      },
+      "dependencies": ["step_2"]
+    },
+    {
+      "id": "step_4",
+      "action": "send_notification",
+      "description": "Post the summary to the Slack #alerts channel",
+      "inputs": {
+        "channel": "#alerts",
+        "message": "${step_3.transformed_data}"
+      },
+      "outputs": {
+        "sent": "boolean"
+      },
+      "dependencies": ["step_3"]
+    }
+  ],
+  "parameters": [],
+  "error_handling": {
+    "default_retry": {
+      "max_attempts": 3,
+      "backoff": "fixed",
+      "delay_seconds": 5
+    },
+    "on_failure": "stop",
+    "step_overrides": {}
+  },
+  "assumptions": [
+    "Actions are assumed to execute sequentially in the order described"
+  ]
+}

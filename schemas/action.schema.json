@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ActionDefinition",
+  "description": "Schema for action catalog entries",
+  "type": "object",
+  "required": ["action_id", "aliases", "required_inputs", "outputs"],
+  "properties": {
+    "action_id": {
+      "type": "string",
+      "description": "Canonical identifier (e.g. fetch_data)"
+    },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Natural language phrases that map to this action"
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "description": "Inputs the action expects"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "description": "What the action produces"
+    },
+    "service": {
+      "type": "string",
+      "description": "External service or tool involved (if any)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,1 @@
+Daily at 6am, pull data from {source}, transform it using the standard cleanup rules, and load the results into {destination}.

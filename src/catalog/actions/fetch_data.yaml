@@ -1,0 +1,21 @@
+action_id: fetch_data
+aliases:
+  - fetch data
+  - pull data
+  - retrieve data
+  - get data
+  - load data
+  - read data
+  - extract data
+  - pull the latest
+  - fetch from
+  - query data
+required_inputs:
+  - name: source
+    type: string
+    description: Data source identifier (e.g. CRM, database, API endpoint)
+outputs:
+  - name: data
+    type: object
+    description: The retrieved data payload
+service: generic

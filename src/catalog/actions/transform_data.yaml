@@ -1,0 +1,24 @@
+action_id: transform_data
+aliases:
+  - transform data
+  - filter data
+  - aggregate data
+  - summarize
+  - summarize data
+  - process data
+  - clean data
+  - convert data
+  - map data
+  - reshape data
+required_inputs:
+  - name: data
+    type: object
+    description: Input data to transform
+  - name: operation
+    type: string
+    description: Transformation operation to apply
+outputs:
+  - name: transformed_data
+    type: object
+    description: The transformed data result
+service: generic

@@ -1,0 +1,23 @@
+action_id: write_file
+aliases:
+  - write file
+  - save file
+  - export file
+  - write to file
+  - save to file
+  - export to file
+  - create file
+  - output file
+  - write data
+required_inputs:
+  - name: path
+    type: string
+    description: File path to write to
+  - name: content
+    type: string
+    description: Content to write
+outputs:
+  - name: path
+    type: string
+    description: Path of the written file
+service: filesystem

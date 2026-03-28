@@ -1,0 +1,1 @@
+Every Monday morning, pull the latest sales data from our CRM, summarize it, and email the report to the team.

@@ -1,0 +1,1 @@
+When a new order comes in via webhook, validate the order data, update the inventory system, and send a confirmation email to the customer.
