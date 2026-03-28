@@ -1,1 +1,8 @@
-aut_app/__pycache__
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+db.sqlite3

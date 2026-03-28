@@ -1,0 +1,27 @@
+action_id: http_request
+aliases:
+  - http request
+  - call api
+  - make request
+  - post to
+  - call endpoint
+  - send request
+  - api call
+  - webhook call
+  - rest call
+  - hit endpoint
+required_inputs:
+  - name: url
+    type: string
+    description: Target URL
+  - name: method
+    type: string
+    description: HTTP method (GET, POST, PUT, DELETE)
+outputs:
+  - name: response
+    type: object
+    description: HTTP response body
+  - name: status_code
+    type: number
+    description: HTTP response status code
+service: http

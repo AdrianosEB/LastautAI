@@ -1,0 +1,77 @@
+{
+  "name": "Daily ETL Pipeline",
+  "trigger": {
+    "type": "schedule",
+    "config": {
+      "cron": "0 6 * * *",
+      "event_type": null,
+      "webhook_path": null
+    }
+  },
+  "steps": [
+    {
+      "id": "step_1",
+      "action": "fetch_data",
+      "description": "Pull data from source",
+      "inputs": {
+        "source": "${parameters.source}"
+      },
+      "outputs": {
+        "data": "object"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "step_2",
+      "action": "transform_data",
+      "description": "Transform using standard cleanup rules",
+      "inputs": {
+        "data": "${step_1.data}",
+        "operation": "cleanup"
+      },
+      "outputs": {
+        "transformed_data": "object"
+      },
+      "dependencies": ["step_1"]
+    },
+    {
+      "id": "step_3",
+      "action": "write_file",
+      "description": "Load results into destination",
+      "inputs": {
+        "path": "${parameters.destination}",
+        "content": "${step_2.transformed_data}"
+      },
+      "outputs": {
+        "path": "string"
+      },
+      "dependencies": ["step_2"]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "source",
+      "type": "string",
+      "default": "{source}",
+      "description": "Parameter: source"
+    },
+    {
+      "name": "destination",
+      "type": "string",
+      "default": "{destination}",
+      "description": "Parameter: destination"
+    }
+  ],
+  "error_handling": {
+    "default_retry": {
+      "max_attempts": 3,
+      "backoff": "fixed",
+      "delay_seconds": 5
+    },
+    "on_failure": "stop",
+    "step_overrides": {}
+  },
+  "assumptions": [
+    "Actions are assumed to execute sequentially in the order described"
+  ]
+}
