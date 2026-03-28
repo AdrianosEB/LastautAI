@@ -11,6 +11,7 @@
     <div class="container">
         <h1>Welcome, {{ request.user.username }}!</h1>
         <p>You're logged in.</p>
+        <a href="{% url 'agent_dashboard' %}" style="display:block; margin-bottom: 0.5rem;">Go to Agent Dashboard</a>
         <a href="{% url 'logout' %}">Log Out</a>
     </div>
 </body>
