@@ -5,6 +5,10 @@ import json
 import logging
 import sys
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from src.pipeline import generate_workflow, AmbiguityRejection, PipelineError
 
 

@@ -1,8 +1,25 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
 *.egg-info/
 dist/
 build/
 .pytest_cache/
 db.sqlite3
+
+# Logs and temp files
+*.log
+server.log
+output.txt
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/

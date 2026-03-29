@@ -96,3 +96,103 @@ def generate_workflow(
 
     logger.info("Pipeline: total time %.3fs", time.monotonic() - pipeline_start)
     return result
+
+
+def generate_workflow_steps(
+    description: str,
+    output_format: str = "json",
+    strict_mode: bool = False,
+    client: anthropic.Anthropic | None = None,
+) -> dict[str, Any]:
+    """
+    Full pipeline with intermediate results from each stage.
+    Returns a dict with keys: parser, analyzer, planner, serializer, workflow.
+    """
+    import dataclasses
+
+    def _dc_to_dict(obj: Any) -> Any:
+        if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+            return {k: _dc_to_dict(v) for k, v in dataclasses.asdict(obj).items()}
+        if isinstance(obj, list):
+            return [_dc_to_dict(i) for i in obj]
+        if isinstance(obj, dict):
+            return {k: _dc_to_dict(v) for k, v in obj.items()}
+        return obj
+
+    stages: dict[str, Any] = {}
+
+    # Stage 1: Parse
+    try:
+        t0 = time.monotonic()
+        parse_result = parse(description, client=client)
+        stages["parser"] = {
+            "status": "success",
+            "duration_ms": round((time.monotonic() - t0) * 1000),
+            "result": _dc_to_dict(parse_result),
+        }
+    except Exception as e:
+        stages["parser"] = {"status": "error", "error": str(e)}
+        return stages
+
+    # Stage 2: Analyze
+    try:
+        t0 = time.monotonic()
+        registry = create_registry()
+        analysis_result = analyze(parse_result, registry=registry, strict_mode=strict_mode)
+        stages["analyzer"] = {
+            "status": "success",
+            "duration_ms": round((time.monotonic() - t0) * 1000),
+            "result": _dc_to_dict(analysis_result),
+        }
+    except Exception as e:
+        stages["analyzer"] = {"status": "error", "error": str(e)}
+        return stages
+
+    if strict_mode and analysis_result.ambiguities:
+        stages["analyzer"]["ambiguities"] = [
+            {"text": a.text, "options": a.options}
+            for a in analysis_result.ambiguities
+        ]
+        stages["analyzer"]["status"] = "ambiguous"
+        return stages
+
+    # Stage 3: Plan
+    try:
+        t0 = time.monotonic()
+        plan_result = plan(analysis_result)
+        dag_summary = {
+            "nodes": plan_result.dag.nodes,
+            "edges": [
+                {"from": e.source, "to": e.target}
+                for e in plan_result.dag.edges
+            ],
+        }
+        stages["planner"] = {
+            "status": "success",
+            "duration_ms": round((time.monotonic() - t0) * 1000),
+            "result": {
+                "dag": dag_summary,
+                "trigger": _dc_to_dict(plan_result.trigger),
+                "parameters": _dc_to_dict(plan_result.parameters),
+                "error_handling": _dc_to_dict(plan_result.error_handling),
+                "assumptions": plan_result.assumptions,
+            },
+        }
+    except Exception as e:
+        stages["planner"] = {"status": "error", "error": str(e)}
+        return stages
+
+    # Stage 4: Serialize
+    try:
+        t0 = time.monotonic()
+        result = serialize(plan_result, output_format=output_format)
+        stages["serializer"] = {
+            "status": "success",
+            "duration_ms": round((time.monotonic() - t0) * 1000),
+        }
+        stages["workflow"] = result
+    except Exception as e:
+        stages["serializer"] = {"status": "error", "error": str(e)}
+        return stages
+
+    return stages

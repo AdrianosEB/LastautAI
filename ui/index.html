@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LastautAI - Natural Language to Workflow</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #24243a;
+      --border: #2e2e4a;
+      --text: #e4e4ef;
+      --text-dim: #8888a0;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --success: #00cec9;
+      --warning: #fdcb6e;
+      --error: #ff6b6b;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* Layout */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      height: calc(100vh - 65px);
+    }
+
+    /* Left panel - Input */
+    .input-panel {
+      padding: 2rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .input-panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .input-panel p.hint {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    textarea {
+      flex: 1;
+      min-height: 160px;
+      max-height: 250px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+    }
+    textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      color: white;
+      flex: 1;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+
+    /* Examples */
+    .examples {
+      margin-top: 1.5rem;
+    }
+    .examples h3 {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+    .example-chip {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      margin: 0.25rem 0.25rem;
+      transition: all 0.2s;
+    }
+    .example-chip:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    /* Right panel - Output */
+    .output-panel {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .output-panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Pipeline stages */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .stage.active {
+      border-color: var(--accent);
+    }
+    .stage.done {
+      border-color: var(--success);
+    }
+    .stage.error {
+      border-color: var(--error);
+    }
+    .stage-header {
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .stage-header:hover {
+      background: var(--surface2);
+    }
+    .stage-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .stage-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--surface2);
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .stage.active .stage-icon {
+      background: var(--accent);
+      color: white;
+    }
+    .stage.done .stage-icon {
+      background: var(--success);
+      color: var(--bg);
+    }
+    .stage.error .stage-icon {
+      background: var(--error);
+      color: white;
+    }
+    .stage-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .stage-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .stage-body {
+      display: none;
+      padding: 0 1rem 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .stage-body.open {
+      display: block;
+    }
+    .stage-body pre {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      color: var(--accent-light);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Workflow output */
+    .workflow-output {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .output-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+    .output-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sm:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .btn-sm.copied {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .output-code {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: var(--text);
+      min-height: 200px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-dim);
+      text-align: center;
+      gap: 0.75rem;
+    }
+    .empty-state .icon {
+      font-size: 2.5rem;
+      opacity: 0.3;
+    }
+    .empty-state p {
+      font-size: 0.9rem;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    /* Workflow summary cards */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+    }
+    .summary-card .label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .summary-card .value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+      color: var(--accent-light);
+    }
+
+    /* Format tabs */
+    .format-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0.75rem;
+    }
+    .format-tab {
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .format-tab:first-child { border-radius: 6px 0 0 6px; }
+    .format-tab:last-child { border-radius: 0 6px 6px 0; }
+    .format-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* n8n settings panel */
+    .n8n-settings {
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .n8n-settings h3 {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+    .n8n-settings label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 0.25rem;
+      margin-top: 0.5rem;
+    }
+    .n8n-settings label:first-of-type {
+      margin-top: 0;
+    }
+    .n8n-settings input {
+      width: 100%;
+      padding: 0.5rem 0.7rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .n8n-settings input:focus {
+      border-color: var(--accent);
+    }
+    .n8n-settings input::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+    .n8n-status {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      display: none;
+    }
+    .n8n-status.success {
+      display: block;
+      background: rgba(0, 206, 201, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    .n8n-status.error {
+      display: block;
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+    .btn-n8n {
+      margin-top: 0.75rem;
+      width: 100%;
+      padding: 0.6rem;
+      background: linear-gradient(135deg, #ff6d5a, #ea4c46);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-n8n:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(234, 76, 70, 0.4);
+    }
+    .btn-n8n:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .input-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .output-panel {
+        min-height: 60vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>LastautAI</h1>
+    <span class="subtitle">Natural Language to Workflow Automation</span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left: Input -->
+  <div class="input-panel">
+    <h2>Describe Your Workflow</h2>
+    <p class="hint">
+      Write what you want automated in plain English. The AI will break it down into steps, identify triggers, and produce a structured workflow you can export to n8n, Make, or any automation tool.
+    </p>
+
+    <textarea id="description" placeholder="Every Monday morning, pull the latest sales data from our CRM, summarize it, and email the report to the team..."></textarea>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="generateBtn" onclick="generate()">Generate Workflow</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="examples">
+      <h3>Try an example</h3>
+      <span class="example-chip" onclick="useExample(this)">Every Monday, pull sales data from CRM, summarize it, and email the report to the team</span>
+      <span class="example-chip" onclick="useExample(this)">When CPU usage exceeds 90%, restart the service and notify the oncall engineer</span>
+      <span class="example-chip" onclick="useExample(this)">Fetch error logs daily, filter critical ones, summarize them, and post to Slack</span>
+      <span class="example-chip" onclick="useExample(this)">When a new order comes in via webhook, validate the payment, update inventory, and send confirmation email</span>
+      <span class="example-chip" onclick="useExample(this)">Every day at 6am, pull data from the data warehouse, transform it, and load into the reporting database</span>
+    </div>
+
+    <div class="n8n-settings">
+      <h3>n8n Connection</h3>
+      <label for="n8nUrl">n8n Instance URL</label>
+      <input type="text" id="n8nUrl" placeholder="http://localhost:5678" value="">
+      <label for="n8nApiKey">API Key</label>
+      <input type="password" id="n8nApiKey" placeholder="n8n API key (Settings > API)">
+      <button class="btn-n8n" id="deployBtn" onclick="deployToN8n()" disabled>Deploy to n8n</button>
+      <div class="n8n-status" id="n8nStatus"></div>
+    </div>
+  </div>
+
+  <!-- Right: Output -->
+  <div class="output-panel">
+    <h2>Pipeline Output</h2>
+
+    <!-- Pipeline stages -->
+    <div class="pipeline" id="pipeline">
+      <div class="stage" id="stage-parser" data-stage="parser">
+        <div class="stage-header" onclick="toggleStage('parser')">
+          <div class="stage-left">
+            <div class="stage-icon">1</div>
+            <span class="stage-name">Parser</span>
+          </div>
+          <span class="stage-meta" id="meta-parser">Extracts actions, entities, triggers</span>
+        </div>
+        <div class="stage-body" id="body-parser"></div>
+      </div>
+      <div class="stage" id="stage-analyzer" data-stage="analyzer">
+        <div class="stage-header" onclick="toggleStage('analyzer')">
+          <div class="stage-left">
+            <div class="stage-icon">2</div>
+            <span class="stage-name">Analyzer</span>
+          </div>
+          <span class="stage-meta" id="meta-analyzer">Resolves actions, flags ambiguities</span>
+        </div>
+        <div class="stage-body" id="body-analyzer"></div>
+      </div>
+      <div class="stage" id="stage-planner" data-stage="planner">
+        <div class="stage-header" onclick="toggleStage('planner')">
+          <div class="stage-left">
+            <div class="stage-icon">3</div>
+            <span class="stage-name">Planner</span>
+          </div>
+          <span class="stage-meta" id="meta-planner">Builds DAG, assigns triggers</span>
+        </div>
+        <div class="stage-body" id="body-planner"></div>
+      </div>
+      <div class="stage" id="stage-serializer" data-stage="serializer">
+        <div class="stage-header" onclick="toggleStage('serializer')">
+          <div class="stage-left">
+            <div class="stage-icon">4</div>
+            <span class="stage-name">Serializer</span>
+          </div>
+          <span class="stage-meta" id="meta-serializer">Produces final workflow JSON</span>
+        </div>
+        <div class="stage-body" id="body-serializer"></div>
+      </div>
+    </div>
+
+    <!-- Result area -->
+    <div class="workflow-output" id="resultArea">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">&#9881;</div>
+        <p>Enter a workflow description and click Generate to see the step-by-step pipeline output</p>
+      </div>
+
+      <div id="resultContent" style="display:none;">
+        <div class="summary-cards" id="summaryCards"></div>
+
+        <div class="output-header">
+          <h3>Workflow Definition</h3>
+          <div class="output-actions">
+            <button class="btn-sm" onclick="copyOutput()">Copy JSON</button>
+            <button class="btn-sm" onclick="downloadOutput()">Download</button>
+          </div>
+        </div>
+
+        <div class="format-tabs">
+          <div class="format-tab active" onclick="switchFormat('json', this)">JSON</div>
+          <div class="format-tab" onclick="switchFormat('n8n', this)">n8n Format</div>
+        </div>
+
+        <div class="output-code" id="outputCode"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentWorkflow = null;
+  let currentN8n = null;
+
+  function useExample(el) {
+    document.getElementById('description').value = el.textContent;
+  }
+
+  function clearAll() {
+    document.getElementById('description').value = '';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('resultContent').style.display = 'none';
+    currentWorkflow = null;
+    currentN8n = null;
+    ['parser','analyzer','planner','serializer'].forEach(s => {
+      const el = document.getElementById('stage-' + s);
+      el.className = 'stage';
+      document.getElementById('body-' + s).innerHTML = '';
+      document.getElementById('body-' + s).classList.remove('open');
+    });
+    resetMeta();
+  }
+
+  function resetMeta() {
+    document.getElementById('meta-parser').textContent = 'Extracts actions, entities, triggers';
+    document.getElementById('meta-analyzer').textContent = 'Resolves actions, flags ambiguities';
+    document.getElementById('meta-planner').textContent = 'Builds DAG, assigns triggers';
+    document.getElementById('meta-serializer').textContent = 'Produces final workflow JSON';
+  }
+
+  function toggleStage(name) {
+    const body = document.getElementById('body-' + name);
+    body.classList.toggle('open');
+  }
+
+  function setStageActive(name) {
+    const el = document.getElementById('stage-' + name);
+    el.className = 'stage active';
+    document.getElementById('meta-' + name).innerHTML = '<span class="spinner"></span>';
+  }
+
+  function setStageDone(name, durationMs, data) {
+    const el = document.getElementById('stage-' + name);
+    el.className = 'stage done';
+    document.getElementById('meta-' + name).textContent = durationMs + 'ms';
+    if (data) {
+      document.getElementById('body-' + name).innerHTML =
+        '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre>';
+    }
+  }
+
+  function setStageError(name, msg) {
+    const el = document.getElementById('stage-' + name);
+    el.className = 'stage error';
+    document.getElementById('meta-' + name).textContent = 'Error';
+    document.getElementById('body-' + name).innerHTML =
+      '<pre style="color:var(--error)">' + escapeHtml(msg) + '</pre>';
+    document.getElementById('body-' + name).classList.add('open');
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function generate() {
+    const desc = document.getElementById('description').value.trim();
+    if (!desc) return;
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    // Reset
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultContent').style.display = 'none';
+    currentWorkflow = null;
+    currentN8n = null;
+    ['parser','analyzer','planner','serializer'].forEach(s => {
+      document.getElementById('stage-' + s).className = 'stage';
+      document.getElementById('body-' + s).innerHTML = '';
+      document.getElementById('body-' + s).classList.remove('open');
+    });
+    resetMeta();
+
+    // Animate stages sequentially
+    const stages = ['parser','analyzer','planner','serializer'];
+    let stageIdx = 0;
+    setStageActive(stages[0]);
+    const stageInterval = setInterval(() => {
+      stageIdx++;
+      if (stageIdx < stages.length) {
+        setStageActive(stages[stageIdx]);
+      }
+    }, 600);
+
+    try {
+      const API = window.location.port === '8000' ? '' : 'http://localhost:8000';
+      const resp = await fetch(API + '/workflows/generate-steps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc, output_format: 'json', strict_mode: false }),
+      });
+
+      clearInterval(stageInterval);
+      const data = await resp.json();
+
+      // Update stages with real data
+      for (const stage of stages) {
+        const stageData = data[stage] || data.stages?.[stage];
+        if (!stageData) {
+          document.getElementById('stage-' + stage).className = 'stage';
+          continue;
+        }
+        if (stageData.status === 'success') {
+          setStageDone(stage, stageData.duration_ms || '?', stageData.result);
+        } else if (stageData.status === 'error') {
+          setStageError(stage, stageData.error || 'Unknown error');
+        } else if (stageData.status === 'ambiguous') {
+          setStageError(stage, 'Ambiguous input detected:\n' +
+            JSON.stringify(stageData.ambiguities || stageData.result, null, 2));
+        }
+      }
+
+      // Show workflow output
+      const workflow = data.workflow || data.stages?.workflow;
+      if (workflow && resp.ok) {
+        currentWorkflow = workflow;
+        currentN8n = toN8nFormat(workflow);
+        showResult(workflow);
+        enableDeploy();
+      } else if (!resp.ok) {
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('emptyState').innerHTML =
+          '<div class="icon" style="color:var(--error)">&#9888;</div><p style="color:var(--error)">Pipeline failed at stage: ' +
+          escapeHtml(data.stage || 'unknown') + '</p>';
+      }
+    } catch (err) {
+      clearInterval(stageInterval);
+      stages.forEach(s => setStageError(s, 'Network error'));
+      document.getElementById('emptyState').style.display = 'flex';
+      document.getElementById('emptyState').innerHTML =
+        '<div class="icon" style="color:var(--error)">&#9888;</div><p style="color:var(--error)">Failed to connect to API. Is the server running?</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Generate Workflow';
+  }
+
+  function showResult(workflow) {
+    document.getElementById('resultContent').style.display = 'block';
+    document.getElementById('emptyState').style.display = 'none';
+
+    // Summary cards
+    const trigger = workflow.trigger?.type || 'manual';
+    const steps = workflow.steps?.length || 0;
+    const params = workflow.parameters?.length || 0;
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="summary-card">
+        <div class="label">Trigger</div>
+        <div class="value">${escapeHtml(trigger)}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Steps</div>
+        <div class="value">${steps}</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Parameters</div>
+        <div class="value">${params}</div>
+      </div>
+    `;
+
+    // Output JSON
+    document.getElementById('outputCode').textContent = JSON.stringify(workflow, null, 2);
+
+    // Reset format tabs
+    document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.format-tab').classList.add('active');
+  }
+
+  function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  function toN8nFormat(workflow) {
+    const n8nNodes = [];
+    const n8nConnections = {};
+
+    // Trigger node
+    let triggerNode;
+    if (workflow.trigger?.type === 'schedule') {
+      triggerNode = {
+        id: uuid(),
+        name: 'Schedule Trigger',
+        type: 'n8n-nodes-base.scheduleTrigger',
+        typeVersion: 1.1,
+        position: [250, 300],
+        parameters: {
+          rule: { interval: [{ field: 'cronExpression', expression: workflow.trigger.config?.cron || '0 9 * * 1' }] },
+        },
+      };
+    } else if (workflow.trigger?.type === 'webhook') {
+      triggerNode = {
+        id: uuid(),
+        name: 'Webhook',
+        type: 'n8n-nodes-base.webhook',
+        typeVersion: 1.1,
+        position: [250, 300],
+        parameters: { path: workflow.trigger.config?.webhook_path || '/webhook', httpMethod: 'POST' },
+      };
+    } else {
+      triggerNode = {
+        id: uuid(),
+        name: 'When clicking \u201cTest workflow\u201d',
+        type: 'n8n-nodes-base.manualTrigger',
+        typeVersion: 1,
+        position: [250, 300],
+        parameters: {},
+      };
+    }
+    n8nNodes.push(triggerNode);
+
+    // Action type to n8n node mapping
+    const actionMap = {
+      fetch_data: { type: 'n8n-nodes-base.httpRequest', name: 'Fetch Data' },
+      transform_data: { type: 'n8n-nodes-base.code', name: 'Transform Data' },
+      send_email: { type: 'n8n-nodes-base.emailSend', name: 'Send Email' },
+      send_notification: { type: 'n8n-nodes-base.slack', name: 'Send Notification' },
+      write_file: { type: 'n8n-nodes-base.writeBinaryFile', name: 'Write File' },
+      http_request: { type: 'n8n-nodes-base.httpRequest', name: 'HTTP Request' },
+    };
+
+    // Build step nodes
+    const stepNodes = [];
+    (workflow.steps || []).forEach((step, i) => {
+      const mapped = actionMap[step.action] || { type: 'n8n-nodes-base.code', name: step.action };
+
+      // Deduplicate names
+      let nodeName = mapped.name;
+      const dupes = workflow.steps.filter(s => s.action === step.action);
+      if (dupes.length > 1) {
+        nodeName = mapped.name + ' ' + (dupes.indexOf(step) + 1);
+      }
+
+      const node = {
+        id: uuid(),
+        name: nodeName,
+        type: mapped.type,
+        typeVersion: mapped.type === 'n8n-nodes-base.httpRequest' ? 4.2 : 1,
+        position: [250 + (i + 1) * 250, 300],
+        parameters: {},
+        notesInFlow: true,
+        notes: step.description || '',
+      };
+      n8nNodes.push(node);
+      stepNodes.push(node);
+    });
+
+    // Build connections: trigger -> step1 -> step2 -> ...
+    if (stepNodes.length > 0) {
+      n8nConnections[triggerNode.name] = {
+        main: [[{ node: stepNodes[0].name, type: 'main', index: 0 }]]
+      };
+      for (let i = 0; i < stepNodes.length - 1; i++) {
+        n8nConnections[stepNodes[i].name] = {
+          main: [[{ node: stepNodes[i + 1].name, type: 'main', index: 0 }]]
+        };
+      }
+    }
+
+    return {
+      name: workflow.name || 'Generated Workflow',
+      nodes: n8nNodes,
+      connections: n8nConnections,
+      settings: {
+        executionOrder: 'v1',
+      },
+    };
+  }
+
+  function switchFormat(format, tabEl) {
+    document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+
+    if (format === 'json') {
+      document.getElementById('outputCode').textContent = JSON.stringify(currentWorkflow, null, 2);
+    } else if (format === 'n8n') {
+      document.getElementById('outputCode').textContent = JSON.stringify(currentN8n, null, 2);
+    }
+  }
+
+  function copyOutput() {
+    const code = document.getElementById('outputCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const btns = document.querySelectorAll('.btn-sm');
+      btns[0].textContent = 'Copied!';
+      btns[0].classList.add('copied');
+      setTimeout(() => {
+        btns[0].textContent = 'Copy JSON';
+        btns[0].classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  function downloadOutput() {
+    const activeTab = document.querySelector('.format-tab.active').textContent.trim();
+    const data = activeTab === 'n8n Format' ? currentN8n : currentWorkflow;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (data.name || 'workflow').replace(/\s+/g, '_').toLowerCase() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function deployToN8n() {
+    const n8nUrl = document.getElementById('n8nUrl').value.trim().replace(/\/+$/, '');
+    const apiKey = document.getElementById('n8nApiKey').value.trim();
+    const statusEl = document.getElementById('n8nStatus');
+
+    if (!n8nUrl || !apiKey) {
+      statusEl.className = 'n8n-status error';
+      statusEl.textContent = 'Please enter both the n8n URL and API key.';
+      return;
+    }
+    if (!currentN8n) {
+      statusEl.className = 'n8n-status error';
+      statusEl.textContent = 'Generate a workflow first.';
+      return;
+    }
+
+    const btn = document.getElementById('deployBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deploying...';
+    statusEl.className = 'n8n-status';
+    statusEl.style.display = 'none';
+
+    try {
+      const API = window.location.port === '8000' ? '' : 'http://localhost:8000';
+      const resp = await fetch(API + '/n8n/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          n8n_url: n8nUrl,
+          api_key: apiKey,
+          workflow: currentN8n,
+        }),
+      });
+
+      const data = await resp.json();
+      console.log('Deploy response:', resp.status, data);
+
+      if (resp.ok && data.id) {
+        statusEl.className = 'n8n-status success';
+        statusEl.innerHTML = 'Deployed! Workflow ID: <strong>' + escapeHtml(String(data.id)) +
+          '</strong><br><a href="' + escapeHtml(n8nUrl) + '/workflow/' + escapeHtml(String(data.id)) +
+          '" target="_blank" style="color:var(--success)">Open in n8n &rarr;</a>';
+      } else {
+        statusEl.className = 'n8n-status error';
+        statusEl.textContent = JSON.stringify(data.detail || data.error || data.message || data, null, 2);
+      }
+    } catch (err) {
+      console.error('Deploy error:', err);
+      statusEl.className = 'n8n-status error';
+      statusEl.textContent = 'Could not reach the API server: ' + err.message;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Deploy to n8n';
+  }
+
+  // Enable deploy button when workflow is generated
+  function enableDeploy() {
+    document.getElementById('deployBtn').disabled = false;
+  }
+
+  // Keyboard shortcut
+  document.getElementById('description').addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      generate();
+    }
+  });
+</script>
+
+</body>
+</html>

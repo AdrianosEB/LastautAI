@@ -246,7 +246,69 @@ The catalog is extensible — new actions can be registered without modifying th
 | Schema validation | JSON Schema / Pydantic (Python) or Zod (TypeScript)            |
 | Output formats    | Built-in `json` module; `pyyaml` or `js-yaml` for YAML        |
 
-## 9. Milestones
+## 9. Web User Interface
+
+### 9.1 Architecture
+
+The UI is a single-page HTML/CSS/JS application served directly by FastAPI at `GET /`. No separate frontend build step or framework is required — the HTML file is loaded from `ui/index.html`.
+
+### 9.2 Step-by-Step Pipeline Endpoint
+
+`POST /workflows/generate-steps` — Same input as `/workflows/generate`, but returns intermediate results from every pipeline stage:
+
+```json
+{
+  "parser": {
+    "status": "success",
+    "duration_ms": 1230,
+    "result": { "actions": [...], "entities": [...], "temporal_cues": [...] }
+  },
+  "analyzer": {
+    "status": "success",
+    "duration_ms": 12,
+    "result": { "resolved_actions": [...], "ordering": [...], "assumptions": [...] }
+  },
+  "planner": {
+    "status": "success",
+    "duration_ms": 3,
+    "result": { "dag": { "nodes": [...], "edges": [...] }, "trigger": {...} }
+  },
+  "serializer": {
+    "status": "success",
+    "duration_ms": 5
+  },
+  "workflow": { ... }
+}
+```
+
+### 9.3 UI Features
+
+| Feature                    | Description                                                           |
+|----------------------------|-----------------------------------------------------------------------|
+| Pipeline visualization     | Four stage cards with real-time status (pending/active/done/error)    |
+| Intermediate results       | Each stage is expandable to inspect its output                        |
+| Summary cards              | Trigger type, step count, and parameter count at a glance            |
+| Dual output format         | Toggle between raw workflow JSON and n8n-compatible format            |
+| n8n export                 | Client-side conversion to n8n workflow format with node mapping       |
+| Copy / Download            | One-click clipboard copy or file download                            |
+| Example inputs             | Pre-built chips for common workflow patterns                          |
+
+### 9.4 n8n Format Conversion
+
+The UI includes client-side conversion from the LastautAI workflow schema to n8n's workflow format:
+
+| LastautAI action   | n8n node type                         |
+|--------------------|---------------------------------------|
+| `fetch_data`       | `n8n-nodes-base.httpRequest`          |
+| `transform_data`   | `n8n-nodes-base.code`                |
+| `send_email`       | `n8n-nodes-base.emailSend`           |
+| `send_notification`| `n8n-nodes-base.slack`               |
+| `write_file`       | `n8n-nodes-base.writeBinaryFile`     |
+| `http_request`     | `n8n-nodes-base.httpRequest`         |
+
+Trigger mapping: `schedule` → `scheduleTrigger`, `webhook` → `webhook`, others → `manualTrigger`.
+
+## 10. Milestones
 
 | Phase | Deliverable                                                        |
 |-------|--------------------------------------------------------------------|
@@ -255,3 +317,4 @@ The catalog is extensible — new actions can be registered without modifying th
 | 3     | Planner — build step DAG with triggers, dependencies, parameters   |
 | 4     | Serializer and API — end-to-end workflow generation via REST       |
 | 5     | Validation endpoint, golden test suite, and documentation          |
+| 6     | Web UI with step-by-step visualization and n8n export              |
