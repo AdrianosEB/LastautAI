@@ -1,0 +1,6 @@
+Analyze the following workflow description and extract structured information.
+
+Description:
+{description}
+
+Extract all actions, entities, temporal cues, conditions, and parameters from this description. Return the result as a single JSON object following the schema defined in your system instructions.

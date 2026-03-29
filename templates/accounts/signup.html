@@ -4,7 +4,7 @@
 {% block content %}
 <div class="auth-wrapper">
     <div class="auth-box">
-        <h1>Sign Up</h1>
+        <h1>Join the Waitlist</h1>
 
         {% if messages %}
             {% for message in messages %}
@@ -17,7 +17,7 @@
             <p><label>Email<br><input type="email" name="email" required autofocus></label></p>
             <p><label>Password<br><input type="password" name="password1" required></label></p>
             <p><label>Confirm Password<br><input type="password" name="password2" required></label></p>
-            <button type="submit">Create Account</button>
+            <button type="submit">Join Waitlist</button>
         </form>
 
         <p class="alt-link">Already have an account? <a href="{% url 'login' %}">Log in</a></p>

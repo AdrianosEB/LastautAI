@@ -12,13 +12,16 @@
 
 <nav class="navbar">
     <a class="nav-brand" href="{% url 'home' %}">LastautAI</a>
-    {% if user.is_authenticated %}
     <div class="nav-links">
+    {% if user.is_authenticated %}
         <a href="{% url 'monitor' %}" class="{% if request.resolver_match.url_name == 'monitor' %}active{% endif %}">Activity Monitor</a>
         <a href="{% url 'agent_dashboard' %}" class="{% if request.resolver_match.url_name == 'agent_dashboard' %}active{% endif %}">Agents</a>
         <a href="{% url 'logout' %}" class="nav-logout">Log Out</a>
-    </div>
+    {% else %}
+        <a href="{% url 'signup' %}">Join Waitlist</a>
+        <a href="{% url 'login' %}">Log In</a>
     {% endif %}
+    </div>
 </nav>
 
 <main class="main-content">

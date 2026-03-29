@@ -1,0 +1,23 @@
+action_id: send_notification
+aliases:
+  - send notification
+  - notify
+  - alert
+  - send alert
+  - post to slack
+  - notify oncall
+  - send sms
+  - push notification
+  - notify via slack
+required_inputs:
+  - name: channel
+    type: string
+    description: Notification channel (e.g. Slack channel, SMS number)
+  - name: message
+    type: string
+    description: Notification message content
+outputs:
+  - name: sent
+    type: boolean
+    description: Whether the notification was delivered
+service: notification
