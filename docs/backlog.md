@@ -15,6 +15,8 @@ workflow-automation/
 │   │   ├── server.py                       # FastAPI app setup, middleware, CORS
 │   │   ├── routes/
 │   │   │   ├── generate.py                 # POST /workflows/generate endpoint
+│   │   │   ├── generate_steps.py           # POST /workflows/generate-steps — step-by-step with intermediate results
+│   │   │   ├── run.py                      # POST /workflows/run — generate + execute
 │   │   │   └── validate.py                 # POST /workflows/validate endpoint
 │   │   └── models/
 │   │       ├── requests.py                 # Pydantic models for API request bodies
@@ -78,6 +80,9 @@ workflow-automation/
 │   │   └── test_api.py                     # HTTP-level tests for both endpoints
 │   └── golden/
 │       └── test_golden.py                  # Runs all examples/inputs through pipeline, diffs against examples/outputs
+│
+├── ui/
+│   └── index.html                          # Single-page web UI — workflow input, pipeline viz, n8n export
 │
 ├── pyproject.toml                          # Project metadata, dependencies, scripts
 ├── .env.example                            # Template for environment variables (API keys, config)
@@ -150,3 +155,15 @@ Tasks are grouped by phase (matching spec.md milestones) and ordered by dependen
 - [ ] **P5-6**: Add a `--dry-run` CLI entrypoint that reads a text file and prints the generated workflow to stdout (useful for local development without starting the server)
 - [ ] **P5-7**: Review all action catalog entries against the golden test inputs — add any missing aliases surfaced during testing
 - [ ] **P5-8**: Final pass — run full test suite, fix failures, verify all schemas are in sync with Pydantic models
+
+### Phase 6 — Web UI and Export
+
+- [x] **P6-1**: Create `POST /workflows/generate-steps` endpoint that returns intermediate results from each pipeline stage (parser, analyzer, planner, serializer) with timing and status
+- [x] **P6-2**: Build single-page web UI in `ui/index.html` — text area input, pipeline stage visualization with expand/collapse, summary cards, JSON output viewer
+- [x] **P6-3**: Add n8n format conversion in the UI — client-side mapping from LastautAI workflow schema to n8n node types and connections
+- [x] **P6-4**: Add example input chips for quick experimentation with common workflow patterns
+- [x] **P6-5**: Serve the UI at `GET /` from FastAPI, add CORS middleware
+- [x] **P6-6**: Add copy-to-clipboard and download-as-file functionality for workflow output
+- [ ] **P6-7**: Add YAML output tab alongside JSON and n8n formats
+- [ ] **P6-8**: Add Make (Integromat) format conversion alongside n8n
+- [x] **P6-9**: Update `docs/vision.md`, `docs/spec.md`, and `docs/backlog.md` to document the web UI

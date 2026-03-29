@@ -54,8 +54,32 @@ A structured workflow definition (JSON or YAML) containing:
 - Developers who want to rapidly prototype automations from high-level descriptions.
 - Operations and support staff looking to codify repetitive manual workflows.
 
+## Web Interface
+
+The system includes a browser-based UI that makes the NL-to-workflow pipeline accessible and transparent:
+
+### Step-by-Step Pipeline Visualization
+Users see each processing stage (Parser, Analyzer, Planner, Serializer) execute in real time with status indicators, timing, and expandable intermediate results. This transparency builds trust — users understand *how* their words became a workflow, not just the final output.
+
+### Input Experience
+- Large text area for entering workflow descriptions in plain language
+- Pre-built example chips for quick experimentation
+- Keyboard shortcut (Cmd/Ctrl+Enter) for fast generation
+
+### Output & Export
+- Summary cards showing trigger type, step count, and parameter count at a glance
+- Full workflow JSON with syntax highlighting
+- **n8n-compatible export** — one-click conversion to n8n's workflow format, ready to import directly
+- Copy-to-clipboard and download buttons for immediate use in any automation platform
+
+### Design Principles for the UI
+- **Show the work** — Every pipeline stage is visible and inspectable, reinforcing the "transparency over magic" principle
+- **Export-ready** — Output is not just viewable but immediately actionable in real automation tools
+- **Zero setup** — The UI is served directly by the FastAPI backend at `/`, no separate frontend build required
+
 ## Success Criteria
 
 - A plain-language description produces a correct, complete workflow definition on the first attempt for common use cases.
 - Ambiguities are flagged with clear assumptions, not silently resolved.
 - Generated workflows are valid structured data that can be loaded by a workflow engine without manual editing.
+- The web UI shows each pipeline stage and produces output that can be directly imported into n8n or similar tools.
