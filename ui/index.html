@@ -1261,10 +1261,13 @@
         </div>
         <div class="suggestion-desc" style="font-size:1rem;font-weight:600;margin-bottom:0.5rem">${esc(title)}</div>
         ${hasRefined ? `
+          <div style="font-size:0.75rem;color:var(--accent-light);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:0.35rem">Workflow prompt</div>
           <div class="suggestion-desc" style="font-size:0.85rem;line-height:1.6;margin-bottom:0.75rem;padding:0.75rem;background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.15);border-radius:8px;color:var(--text)">
             ${esc(s.refined_prompt)}
           </div>
-        ` : ''}
+        ` : `
+          <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.5rem;font-style:italic">Click Approve to generate a detailed workflow prompt from this analysis.</div>
+        `}
         <div style="font-size:0.78rem;color:var(--text-dim);cursor:pointer;margin-bottom:0.5rem" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
           &#9654; Show raw analysis
         </div>
