@@ -1125,10 +1125,21 @@
       const data = await resp.json();
       if (resp.ok && data.id) {
         statusEl.className = 'n8n-status success';
-        statusEl.innerHTML = 'Deployed! Workflow ID: <strong>' + esc(String(data.id)) + '</strong><br><a href="' + esc(n8nUrl) + '/workflow/' + esc(String(data.id)) + '" target="_blank" style="color:var(--success)">Open in n8n &rarr;</a>';
+        statusEl.innerHTML = `
+          <div style="text-align:center;padding:0.5rem 0">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">&#10003;</div>
+            <div style="font-size:1rem;font-weight:700;margin-bottom:0.25rem">Successfully deployed!</div>
+            <div style="font-size:0.85rem;margin-bottom:0.75rem;opacity:0.85">Your workflow is live in n8n (ID: ${esc(String(data.id))})</div>
+            <a href="${esc(n8nUrl)}/workflow/${esc(String(data.id))}" target="_blank" style="display:inline-block;padding:0.5rem 1.25rem;background:rgba(0,206,201,0.15);border:1px solid var(--success);border-radius:8px;color:var(--success);text-decoration:none;font-weight:600;font-size:0.85rem;transition:all 0.2s">
+              Open in n8n &rarr;
+            </a>
+          </div>`;
+        btn.textContent = 'Deployed!';
+        btn.style.background = 'var(--success)';
+        setTimeout(() => { btn.style.background = ''; btn.textContent = 'Deploy to n8n'; }, 4000);
       } else { statusEl.className = 'n8n-status error'; statusEl.textContent = JSON.stringify(data.detail || data.error || data, null, 2); }
     } catch (err) { statusEl.className = 'n8n-status error'; statusEl.textContent = 'Could not reach API: ' + err.message; }
-    btn.disabled = false; btn.textContent = 'Deploy to n8n';
+    btn.disabled = false;
   }
   function enableDeploy() { document.getElementById('deployBtn').disabled = false; }
 
