@@ -1491,8 +1491,13 @@
       el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
       return;
     }
-    suggestions.forEach(s => { _suggestionPrompts[s.id] = s.refined_prompt || s.description; });
-    el.innerHTML = suggestions.map(s => {
+    const visible = suggestions.filter(s => s.status !== 'dismissed');
+    if (visible.length === 0) {
+      el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
+      return;
+    }
+    visible.forEach(s => { _suggestionPrompts[s.id] = s.refined_prompt || s.description; });
+    el.innerHTML = visible.map(s => {
       const title = (s.summary && s.summary.length > 0) ? s.summary : s.description.substring(0, 100);
       const hasRefined = s.refined_prompt && s.refined_prompt.length > 0;
       return `
@@ -1518,7 +1523,6 @@
             <button class="btn-send-create" onclick="sendToCreateById(${s.id}, '${s.status}')">Generate Workflow &rarr;</button>
           ` : ''}
           <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
-          <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
         </div>
       </div>
     `}).join('');
