@@ -1243,14 +1243,17 @@
     } catch {}
   }
 
+  // Store suggestion prompts by ID so we don't need inline strings in onclick
+  const _suggestionPrompts = {};
+
   function renderSuggestions(suggestions, containerId) {
     const el = document.getElementById(containerId);
     if (suggestions.length === 0) {
       el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
       return;
     }
+    suggestions.forEach(s => { _suggestionPrompts[s.id] = s.refined_prompt || s.description; });
     el.innerHTML = suggestions.map(s => {
-      const promptText = (s.refined_prompt || s.description).replace(/'/g, "\\'").replace(/\n/g, ' ');
       const title = (s.summary && s.summary.length > 0) ? s.summary : s.description.substring(0, 100);
       const hasRefined = s.refined_prompt && s.refined_prompt.length > 0;
       return `
@@ -1278,7 +1281,7 @@
             <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
           ` : ''}
           ${s.status === 'approved' ? `
-            <button class="btn-send-create" onclick="sendToCreate('${esc(promptText)}')">Generate Workflow &rarr;</button>
+            <button class="btn-send-create" onclick="sendToCreateById(${s.id})">Generate Workflow &rarr;</button>
           ` : ''}
           <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
         </div>
@@ -1318,6 +1321,12 @@
   function sendToCreate(description) {
     switchTab('create');
     document.getElementById('description').value = description;
+  }
+
+  function sendToCreateById(id) {
+    const prompt = _suggestionPrompts[id] || '';
+    switchTab('create');
+    document.getElementById('description').value = prompt;
   }
 
   // ---- KEYBOARD ----
