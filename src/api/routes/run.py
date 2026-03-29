@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from src.pipeline import generate_workflow, AmbiguityRejection, PipelineError
-from src.executor.engine import execute_workflow, ExecutionResult
+from src.executor.engine import execute_workflow
 
 router = APIRouter()
 

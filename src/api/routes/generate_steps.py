@@ -19,11 +19,17 @@ async def generate_steps(
     user: User | None = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    stages = generate_workflow_steps(
-        description=request.description,
-        output_format=request.output_format,
-        strict_mode=request.strict_mode,
-    )
+    try:
+        stages = generate_workflow_steps(
+            description=request.description,
+            output_format=request.output_format,
+            strict_mode=request.strict_mode,
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "pipeline_error", "stage": "unknown", "message": str(e)},
+        )
 
     # Check if analyzer flagged ambiguity
     if stages.get("analyzer", {}).get("status") == "ambiguous":

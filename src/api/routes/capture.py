@@ -1,3 +1,5 @@
+import logging
+
 import anthropic
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -8,6 +10,7 @@ from src.capture import recorder
 from src.db.database import get_db
 from src.db.models import User, WorkflowSuggestion
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/capture")
 
 _ai = anthropic.Anthropic()
@@ -123,7 +126,7 @@ def update_suggestion(
             s.summary = summary
             s.refined_prompt = refined
         except Exception as exc:
-            print(f"[Capture] Refine error: {exc}")
+            logger.warning("Refine error: %s", exc)
             s.summary = s.description[:100]
             s.refined_prompt = s.description
 
