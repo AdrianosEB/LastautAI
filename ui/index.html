@@ -1057,15 +1057,6 @@
         currentWorkflow = wf; currentN8n = toN8nFormat(wf);
         savedWorkflowId = data.saved_id || null;
         showResult(wf); enableDeploy();
-        // Show auto-detected trigger URLs
-        const statusEl = document.getElementById('n8nStatus');
-        if (data.webhook_url) {
-          statusEl.className = 'n8n-status success';
-          statusEl.innerHTML = 'Webhook trigger detected — POST to <code>' + esc(window.location.origin + data.webhook_url) + '</code> to execute';
-        } else if (data.schedule_url && data.cron) {
-          statusEl.className = 'n8n-status success';
-          statusEl.innerHTML = 'Schedule detected (<code>' + esc(data.cron) + '</code>) — use Schedule button below to activate';
-        }
       } else if (!resp.ok) {
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('emptyState').innerHTML = '<div class="icon" style="color:var(--error)">&#9888;</div><p style="color:var(--error)">Pipeline failed at stage: ' + esc(data.stage || 'unknown') + '</p>';
