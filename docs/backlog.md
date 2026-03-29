@@ -13,15 +13,12 @@
 │   ├── api/
 │   │   ├── server.py                       # FastAPI app setup, middleware, CORS
 │   │   ├── routes/
+│   │   │   ├── workflows.py               # generate, generate-steps, validate, run (consolidated)
+│   │   │   ├── execute_ai.py              # POST /workflows/execute-ai — Claude tool-use with conditional branching
 │   │   │   ├── auth.py                     # POST /auth/signup, /login, GET /me
 │   │   │   ├── capture.py                  # Screen recording & suggestion management
-│   │   │   ├── execute_ai.py              # POST /workflows/execute-ai — Claude tool-use execution (SSE)
-│   │   │   ├── generate.py                 # POST /workflows/generate endpoint
-│   │   │   ├── generate_steps.py           # POST /workflows/generate-steps — step-by-step with intermediate results
 │   │   │   ├── history.py                  # GET/DELETE /workflows/history — workflow CRUD
-│   │   │   ├── n8n.py                      # POST /n8n/deploy — deploy to n8n instance
-│   │   │   ├── run.py                      # POST /workflows/run — generate + execute
-│   │   │   └── validate.py                 # POST /workflows/validate endpoint
+│   │   │   └── n8n.py                      # POST /n8n/deploy — deploy to n8n instance
 │   │   └── models/
 │   │       └── requests.py                 # Pydantic models for API request bodies
 │   │
@@ -60,8 +57,12 @@
 │   │   └── analyzer.py                     # Claude Haiku pattern analysis on event batches
 │   │
 │   ├── executor/
-│   │   ├── engine.py                       # Step-by-step workflow executor (internal pipeline execution)
+│   │   ├── engine.py                       # Step-by-step workflow executor with condition evaluation
 │   │   └── actions.py                      # Action executors: HTTP, email, Slack, file, Claude-powered transforms
+│   │
+│   ├── utils/
+│   │   ├── ai_client.py                    # Shared Anthropic client singleton
+│   │   └── parsing.py                      # LLM response parsing (markdown fence stripping, JSON extraction)
 │   │
 │   └── prompts/
 │       ├── system_prompt.txt               # System prompt for LLM-based parsing (Claude API)
@@ -188,10 +189,12 @@ Tasks are grouped by phase (matching spec.md milestones) and ordered by dependen
 - [x] **P10-3**: Track n8n deployment status per workflow (n8n_id in database)
 - [x] **P10-4**: Support n8n workflow deletion when deleting from history
 
-### Not Implemented
+### Not Implemented (Out of Scope)
 
-- [ ] YAML output tab (JSON and n8n format only)
+These features are documented as stretch goals but are not built:
+
+- [ ] YAML output tab in UI (backend supports YAML, UI only shows JSON and n8n format)
 - [ ] Make (Integromat) format conversion
-- [ ] Real email delivery (currently simulated — needs SendGrid/SES integration)
+- [ ] Real email delivery via SMTP/SendGrid/SES (currently simulated with logging)
 - [ ] Scheduled/cron workflow execution (workflows are on-demand only)
-- [ ] Unit and integration test suite
+- [ ] Automated test suite (unit, integration, golden tests)

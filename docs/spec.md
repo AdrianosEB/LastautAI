@@ -545,6 +545,7 @@ In addition to generating workflow definitions, the system can execute workflows
 | `send_slack_message` | Real (webhook) | Post to Slack channel via `SLACK_WEBHOOK_URL` env var. Simulated if not set |
 | `send_email` | Simulated | Logs email details. Connect SendGrid/SES for production delivery |
 | `transform_data` | Real (Claude) | Claude processes data according to a natural language instruction |
+| `check_condition` | Real (Claude) | Evaluates conditions for branching logic (e.g. "if data has errors") |
 | `create_document` | Real | Generates document content with title, format, and body |
 | `log_result` | Real | Logs the final workflow output |
 

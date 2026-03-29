@@ -7,10 +7,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 
 load_dotenv()
 
-from src.api.routes.generate import router as generate_router
-from src.api.routes.validate import router as validate_router
-from src.api.routes.run import router as run_router
-from src.api.routes.generate_steps import router as generate_steps_router
+from src.api.routes.workflows import router as workflows_router
 from src.api.routes.n8n import router as n8n_router
 from src.api.routes.auth import router as auth_router
 from src.api.routes.history import router as history_router
@@ -31,10 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(generate_router)
-app.include_router(validate_router)
-app.include_router(run_router)
-app.include_router(generate_steps_router)
+app.include_router(workflows_router)
 app.include_router(n8n_router)
 app.include_router(auth_router)
 app.include_router(history_router)
@@ -60,8 +54,5 @@ async def health_check():
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
-        content={
-            "error": "internal_error",
-            "message": str(exc),
-        },
+        content={"error": "internal_error", "message": str(exc)},
     )

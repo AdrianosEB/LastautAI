@@ -1,7 +1,4 @@
-"""
-Pattern analyzer — sends event batches to Claude Haiku for analysis.
-Ported from LastautAI-screen-capture/capture/analyzer.py.
-"""
+"""Pattern analyzer — sends event batches to Claude Haiku for analysis."""
 
 from src.utils.ai_client import get_client
 
