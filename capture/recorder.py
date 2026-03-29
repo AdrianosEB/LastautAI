@@ -52,10 +52,48 @@ def _get_window_title():
         return ''
 
 
+def _get_app_detail(app_name):
+    """Return richer context for specific apps (URL for browsers, path for Finder)."""
+    if platform.system() != 'Darwin':
+        return ''
+    try:
+        if app_name in ('Google Chrome', 'Chromium'):
+            script = 'tell application "Google Chrome" to get URL of active tab of first window'
+        elif app_name == 'Safari':
+            script = 'tell application "Safari" to get URL of current tab of first window'
+        elif app_name == 'Firefox':
+            # Firefox doesn't support AppleScript for URL, fall back to window title
+            script = '''tell application "System Events" to tell process "Firefox"
+                try
+                    return name of front window
+                on error
+                    return ""
+                end try
+            end tell'''
+        elif app_name == 'Finder':
+            script = '''tell application "Finder"
+                try
+                    return POSIX path of (target of front window as alias)
+                on error
+                    return ""
+                end try
+            end tell'''
+        else:
+            return ''
+
+        result = subprocess.run(
+            ['osascript', '-e', script],
+            capture_output=True, text=True, timeout=2
+        )
+        return result.stdout.strip()
+    except Exception:
+        return ''
+
+
 # ── Recorder thread ───────────────────────────────────────────────────────────
 
 class ScreenRecorder(threading.Thread):
-    ANALYSIS_INTERVAL = 30  # seconds between each analysis flush (set to 5*60 for production)
+    ANALYSIS_INTERVAL = 60  # seconds between each analysis flush (set to 5*60 for production)
 
     def __init__(self, user_id):
         super().__init__(daemon=True)
@@ -76,6 +114,7 @@ class ScreenRecorder(threading.Thread):
         while self.running:
             self._check_app_switch()
 
+            print(f'[Recorder] buffer size: {len(self.buffer)}')
             if self.buffer and (time.time() - self.last_analysis_time) >= self.ANALYSIS_INTERVAL:
                 self._flush_and_analyze()
 
@@ -100,12 +139,15 @@ class ScreenRecorder(threading.Thread):
 
     def _on_click(self, x, y, button, pressed):
         if pressed:
-            self._log('click', _get_active_app(), detail=f'x={x} y={y}')
+            app = _get_active_app()
+            detail = _get_app_detail(app) or f'x={x} y={y}'
+            self._log('click', app, window_title=_get_window_title(), detail=detail)
 
     def _check_app_switch(self):
         app = _get_active_app()
         if app and app != self.last_app:
-            self._log('app_switch', app, window_title=_get_window_title())
+            detail = _get_app_detail(app)
+            self._log('app_switch', app, window_title=_get_window_title(), detail=detail)
             self.last_app = app
 
     # ── flush + analyze ───────────────────────────────────────────────────────
@@ -137,8 +179,9 @@ class ScreenRecorder(threading.Thread):
             ])
 
             description = analyze_events(snapshot)
+            print(f'[Recorder] analyzer response: {description}')
 
-            if description and 'not enough data' not in description.lower():
+            if description:
                 raw = '\n'.join(
                     f"{e['timestamp']} [{e['event_type']}] {e['app_name']}"
                     + (f" — {e['window_title']}" if e['window_title'] else '')

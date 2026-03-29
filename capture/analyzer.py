@@ -1,12 +1,11 @@
 import os
-import google.generativeai as genai
+import anthropic
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-_model = genai.GenerativeModel("gemini-2.0-flash")
+client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 
 def analyze_events(events: list) -> str:
-    """Send a batch of captured events to Gemini and return a workflow description."""
+    """Send a batch of captured events to Claude and return a workflow description."""
     if not events:
         return ''
 
@@ -32,5 +31,10 @@ If there are no clear patterns yet, respond only with:
 
 Keep the response concise and non-technical. Do not use bullet points."""
 
-    response = _model.generate_content(prompt)
-    return response.text or ''
+    response = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    return next((b.text for b in response.content if b.type == "text"), '')
