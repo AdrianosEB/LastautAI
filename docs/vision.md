@@ -1,0 +1,61 @@
+# Vision: Natural Language to Workflow Automation
+
+## Problem Statement
+
+Building automations today requires technical knowledge of specific platforms, APIs, and scripting languages. Users who understand *what* they want automated are blocked by *how* to express it in a form machines can execute. This gap between intent and implementation slows down teams, creates bottlenecks on engineering resources, and leaves countless repetitive tasks unautomated.
+
+## Vision
+
+A system where anyone can describe a task in plain language and receive a structured, executable workflow definition in return — no coding required, no platform-specific syntax to learn.
+
+> "Every Monday morning, pull the latest sales data from our CRM, summarize it, and email the report to the team."
+
+That sentence becomes a fully defined workflow: trigger, steps, inputs, outputs, error handling — ready to plug into a workflow engine and run.
+
+## Core Capabilities
+
+### 1. Intent Extraction
+Understand *what* the user wants to achieve, not just the literal words they used. Distinguish between the goal ("keep the team informed on sales") and the mechanism ("pull data, summarize, email").
+
+### 2. Step Decomposition
+Break a natural language description into discrete, ordered actions. Each step has a clear action, defined inputs and outputs, and identified external services or tools.
+
+### 3. Control Flow Detection
+Recognize conditional logic, loops, branching, parallelism, and error handling embedded in everyday language. Phrases like "if the total exceeds $10k, also notify the manager" map to conditional branches in the workflow.
+
+### 4. Trigger Identification
+Determine what kicks off the workflow — a schedule (cron), an event (webhook, file upload, database change), or a manual trigger — based on temporal and contextual cues in the description.
+
+### 5. Parameter Extraction
+Surface configurable values (thresholds, recipients, file paths, time intervals) as named, typed parameters with sensible defaults, so workflows are reusable without editing their definitions.
+
+## Output
+
+A structured workflow definition (JSON or YAML) containing:
+
+| Field            | Description                                                        |
+|------------------|--------------------------------------------------------------------|
+| `name`           | Concise title for the workflow                                     |
+| `trigger`        | What starts the workflow and its configuration                     |
+| `steps`          | Ordered list of actions with IDs, inputs, outputs, and dependencies|
+| `parameters`     | User-configurable variables with types and defaults                |
+| `error_handling` | Retry policies and failure behavior at workflow and step level     |
+
+## Design Principles
+
+- **Fidelity to intent** — Never add steps or logic the user did not describe. The system automates what was asked, nothing more.
+- **Transparency over magic** — When the description is ambiguous, surface assumptions explicitly rather than guessing silently.
+- **Structured and portable** — Output is valid, parseable structured data that can serve as input for any workflow engine or code generator.
+- **Parameterize, don't hard-code** — Configurable values are extracted as parameters so workflows are adaptable without modification.
+
+## Target Users
+
+- Business teams who know their processes but lack engineering resources to automate them.
+- Developers who want to rapidly prototype automations from high-level descriptions.
+- Operations and support staff looking to codify repetitive manual workflows.
+
+## Success Criteria
+
+- A plain-language description produces a correct, complete workflow definition on the first attempt for common use cases.
+- Ambiguities are flagged with clear assumptions, not silently resolved.
+- Generated workflows are valid structured data that can be loaded by a workflow engine without manual editing.
