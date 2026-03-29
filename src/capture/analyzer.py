@@ -24,15 +24,21 @@ def analyze_events(events: list) -> str:
 
 {log_lines}
 
-Analyze this activity and suggest a workflow that could automate what the user is doing.
-Describe the workflow in 2-3 plain sentences covering:
-- What the user is doing (summarize the activity)
-- A suggested automation workflow based on this activity
+Your job is to identify the IMPORTANT, repeatable workflow the user is performing — not every little action.
 
-Always provide a suggestion, even if the pattern is simple or only partially clear.
-Only respond with "Not enough data to identify patterns yet." if there are fewer than 3 events.
+Rules:
+- IGNORE: random clicks, mouse movements, brief app glances, navigating menus, scrolling, window management
+- FOCUS ON: the core task the user is accomplishing across apps (e.g. copying data from one app to another, a multi-step process they repeat, moving information between tools)
+- Identify the HIGH-LEVEL goal: what is the user trying to achieve? What is the end result?
+- Think about what steps in this process could actually be automated with an n8n workflow (API calls, webhooks, scheduled tasks, data transforms, notifications)
 
-Keep the response concise and non-technical. Do not use bullet points."""
+Describe the automation workflow in 2-3 plain sentences covering:
+1. The repeatable task the user is doing (the big picture, not individual clicks)
+2. A practical automation that could handle this task automatically using triggers, API integrations, and actions
+
+Only respond with "Not enough data to identify patterns yet." if the events show no meaningful task (e.g. just idle app switches with no clear purpose).
+
+Keep the response concise and non-technical. Do not use bullet points. Focus on what matters, skip the noise."""
 
     response = _client.messages.create(
         model="claude-haiku-4-5",

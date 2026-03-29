@@ -724,7 +724,7 @@
     <div class="record-panel">
       <h2>Suggested Workflows</h2>
       <p class="hint" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.5;">
-        AI-detected patterns from your recordings. Approve a suggestion to refine it, then send it to Create Workflow to generate and deploy.
+        AI-detected patterns from your recordings. Click Generate Workflow to refine and create an automation.
       </p>
       <div id="suggestedList"><p class="history-empty">No suggestions yet.</p></div>
     </div>
@@ -1274,30 +1274,20 @@
             ${esc(s.refined_prompt)}
           </div>
         ` : `
-          <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.5rem;font-style:italic">Click Approve to generate a detailed workflow prompt from this analysis.</div>
         `}
         <div style="font-size:0.78rem;color:var(--text-dim);cursor:pointer;margin-bottom:0.5rem" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
           &#9654; Show raw analysis
         </div>
         <div class="suggestion-desc" style="display:none;font-size:0.8rem;color:var(--text-dim);line-height:1.6;background:rgba(255,255,255,0.03);padding:0.75rem;border-radius:6px">${esc(s.description)}</div>
         <div class="suggestion-actions">
-          ${s.status === 'pending' ? `
-            <button class="btn-approve" onclick="approveSuggestion(${s.id})">Approve</button>
-            <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
+          ${(s.status === 'pending' || s.status === 'approved') ? `
+            <button class="btn-send-create" onclick="sendToCreateById(${s.id}, '${s.status}')">Generate Workflow &rarr;</button>
           ` : ''}
-          ${s.status === 'approved' ? `
-            <button class="btn-send-create" onclick="sendToCreateById(${s.id})">Generate Workflow &rarr;</button>
-          ` : ''}
+          <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
           <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
         </div>
       </div>
     `}).join('');
-  }
-
-  async function approveSuggestion(id) {
-    await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'approved' }) });
-    loadRecordSuggestions();
-    loadSuggestedTab();
   }
 
   async function dismissSuggestion(id) {
@@ -1328,7 +1318,17 @@
     document.getElementById('description').value = description;
   }
 
-  function sendToCreateById(id) {
+  async function sendToCreateById(id, status) {
+    if (status === 'pending') {
+      try {
+        const r = await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'approved' }) });
+        const d = await r.json();
+        if (d.refined_prompt) {
+          _suggestionPrompts[id] = d.refined_prompt;
+        }
+        loadSuggestedTab();
+      } catch {}
+    }
     const prompt = _suggestionPrompts[id] || '';
     switchTab('create');
     document.getElementById('description').value = prompt;

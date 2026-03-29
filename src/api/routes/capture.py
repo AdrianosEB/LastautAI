@@ -22,33 +22,34 @@ def _refine_suggestion(description: str) -> tuple[str, str]:
     resp = _ai.messages.create(
         model="claude-haiku-4-5",
         max_tokens=600,
-        messages=[{"role": "user", "content": f"""You are converting a screen-activity analysis into a workflow automation prompt.
+        messages=[{"role": "user", "content": f"""You are converting a screen-activity analysis into a practical n8n workflow automation prompt.
 
 Here is the AI analysis of a user's screen activity:
 
 "{description}"
 
+IMPORTANT: Focus on the CORE task only. Strip away noise like opening apps, clicking around, or window management. Identify the actual valuable work being done and how to automate it with real integrations (APIs, webhooks, email, Slack, databases, HTTP requests, etc.).
+
 Return TWO sections separated by "---":
 
-SECTION 1 - TITLE: A short title (max 12 words) for this workflow. Plain language, action-oriented.
-Example: "Auto-launch music and workspace when Calendar opens"
+SECTION 1 - TITLE: A short title (max 10 words). Action-oriented, describing what the automation DOES.
+Example: "Sync CRM contacts to spreadsheet daily"
 
 ---
 
-SECTION 2 - WORKFLOW PROMPT: A detailed, structured workflow description written as if you are instructing an automation tool. Include:
-- The specific TRIGGER (what starts the workflow — e.g. "When X application opens", "Every Monday at 9am")
-- Numbered STEPS with specific actions (e.g. "open URL", "launch app", "send message")
-- Any CONDITIONS or constraints (e.g. "only on weekdays between 9-5")
-- Any user overrides or fallbacks
+SECTION 2 - WORKFLOW PROMPT: A clear workflow description for an n8n automation. Include:
+- TRIGGER: What starts the workflow (webhook, schedule, app event)
+- STEPS: The key actions in order, using real services/APIs (not "open app" — instead "fetch data from X API", "send email via Gmail", "post to Slack channel")
+- OUTPUT: What the end result is
 
-Write it as one paragraph with clear structure. Be specific about apps, URLs, and actions based on what the user was actually doing.
+Keep it practical and implementable. Only include steps that n8n can actually automate via its node integrations. Skip manual UI interactions that can't be automated.
 
-Example output:
-Auto-launch workspace when Calendar opens
+Example:
+Sync new CRM deals to team Slack channel
 ---
-When Google Calendar application opens, trigger: (1) automatically launch YouTube Music playing a focus playlist in a background tab, (2) open the project management app in a separate window, (3) bring Calendar to foreground. Condition: only execute during weekday work hours 9 AM-5 PM. Allow manual override to disable.
+When a new deal is created in HubSpot (webhook trigger), fetch the deal details including contact info and value. Format a summary message with the deal name, value, and assigned rep. Post the summary to the #sales-updates Slack channel. If the deal value exceeds $10,000, also send an email notification to the sales manager.
 
-Now generate for the activity above. Return ONLY the title line, then "---", then the workflow prompt. Nothing else."""}],
+Now generate for the activity above. Return ONLY the title, then "---", then the workflow prompt. Nothing else."""}],
     )
     text = next((b.text for b in resp.content if b.type == "text"), "").strip()
     parts = text.split("---", 1)
