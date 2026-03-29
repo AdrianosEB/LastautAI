@@ -147,8 +147,11 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 │   │   ├── database.py        # SQLAlchemy setup
 │   │   └── models.py          # User, Workflow, EventLog, WorkflowSuggestion
 │   ├── executor/
-│   │   ├── engine.py          # Step-by-step workflow executor
+│   │   ├── engine.py          # Step-by-step workflow executor with condition evaluation
 │   │   └── actions.py         # Tool implementations (HTTP, email, etc.)
+│   ├── utils/
+│   │   ├── ai_client.py       # Shared Anthropic client singleton
+│   │   └── parsing.py         # LLM response parsing (markdown fence stripping, JSON extraction)
 │   └── pipeline/              # 4-stage NL-to-workflow pipeline
 │       ├── parser.py
 │       ├── analyzer.py

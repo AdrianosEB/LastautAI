@@ -7,9 +7,6 @@ import json
 import logging
 import os
 
-import anthropic
-
-logger = logging.getLogger(__name__)
 import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -17,10 +14,10 @@ from pydantic import BaseModel
 
 from src.api.routes.auth import get_current_user
 from src.db.models import User
+from src.utils.ai_client import get_client
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/workflows", tags=["execute-ai"])
-
-_client = anthropic.Anthropic()
 
 TOOLS = [
     {
@@ -148,8 +145,7 @@ def _execute_tool(name: str, inputs: dict) -> dict:
         data = inputs.get("data", "")
         instruction = inputs.get("instruction", "")
         try:
-            ai = anthropic.Anthropic()
-            resp = ai.messages.create(
+            resp = get_client().messages.create(
                 model="claude-haiku-4-5",
                 max_tokens=1024,
                 messages=[{"role": "user", "content": (
@@ -206,20 +202,27 @@ def execute_ai(
             "2. Call the appropriate tool\n"
             "3. After getting the result, briefly state what happened\n"
             "4. Move to the next step\n\n"
+            "IMPORTANT: Each tool call receives the result from the previous step. "
+            "Use data from earlier steps to feed into later steps. For example, if step 1 "
+            "fetches data, use that data in step 2's transform or message.\n\n"
             "Execute all steps in logical order. Use real URLs and data when available. "
             "When you're done with all steps, summarize what was accomplished.\n"
             "Be concise — one sentence per explanation, then call the tool."
         )
+
+        # Track step results for inter-step chaining
+        step_outputs = []
 
         user_msg = f"Execute this workflow:\n\n{req.description}{workflow_context}"
 
         messages = [{"role": "user", "content": user_msg}]
 
         max_iterations = 15
+        client = get_client()
 
         for _ in range(max_iterations):
             try:
-                response = _client.messages.create(
+                response = client.messages.create(
                     model="claude-haiku-4-5",
                     max_tokens=4096,
                     system=system_prompt,
@@ -246,16 +249,26 @@ def execute_ai(
                         "input": block.input,
                     })
 
-                    yield f"data: {json.dumps({'type': 'step_start', 'tool': block.name, 'input': block.input})}\n\n"
+                    step_num = len(step_outputs) + 1
+                    yield f"data: {json.dumps({'type': 'step_start', 'tool': block.name, 'input': block.input, 'step': step_num})}\n\n"
 
                     result = _execute_tool(block.name, block.input)
 
-                    yield f"data: {json.dumps({'type': 'step_complete', 'tool': block.name, 'result': result})}\n\n"
+                    # Track for inter-step chaining
+                    step_outputs.append({"step": step_num, "tool": block.name, "result": result})
+
+                    yield f"data: {json.dumps({'type': 'step_complete', 'tool': block.name, 'result': result, 'step': step_num})}\n\n"
+
+                    # Include chain context so Claude knows previous step results
+                    chain_note = ""
+                    if len(step_outputs) > 1:
+                        prev = step_outputs[-2]
+                        chain_note = f"\n\n[Previous step {prev['step']} ({prev['tool']}) returned: {json.dumps(prev['result'])[:500]}]"
 
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
-                        "content": json.dumps(result),
+                        "content": json.dumps(result) + chain_note,
                     })
 
             # Add assistant message + all tool results as one exchange

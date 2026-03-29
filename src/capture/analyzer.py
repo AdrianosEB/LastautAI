@@ -3,9 +3,7 @@ Pattern analyzer — sends event batches to Claude Haiku for analysis.
 Ported from LastautAI-screen-capture/capture/analyzer.py.
 """
 
-import anthropic
-
-_client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from environment
+from src.utils.ai_client import get_client
 
 
 def analyze_events(events: list) -> str:
@@ -40,7 +38,7 @@ Only respond with "Not enough data to identify patterns yet." if the events show
 
 Keep the response concise and non-technical. Do not use bullet points. Focus on what matters, skip the noise."""
 
-    response = _client.messages.create(
+    response = get_client().messages.create(
         model="claude-haiku-4-5",
         max_tokens=500,
         messages=[{"role": "user", "content": prompt}],
@@ -53,7 +51,7 @@ def summarize_suggestion(description: str) -> str:
     """Generate a short plain-language title for a workflow suggestion."""
     if not description:
         return ''
-    response = _client.messages.create(
+    response = get_client().messages.create(
         model="claude-haiku-4-5",
         max_tokens=60,
         messages=[{"role": "user", "content": f"""Summarize this workflow suggestion in one short sentence (max 12 words).

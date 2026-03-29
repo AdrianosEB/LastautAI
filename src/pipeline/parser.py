@@ -60,13 +60,8 @@ def _load_prompt(filename: str) -> str:
 
 def _parse_llm_response(raw: str) -> dict:
     """Parse JSON from LLM response, stripping markdown fences if present."""
-    text = raw.strip()
-    if text.startswith("```"):
-        # Remove opening fence (```json or ```)
-        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-        # Remove closing fence
-        if text.endswith("```"):
-            text = text[:-3]
+    from src.utils.parsing import strip_markdown_fences
+    text = strip_markdown_fences(raw)
     return json.loads(text)
 
 
@@ -119,7 +114,8 @@ def _dict_to_parse_result(data: dict) -> ParseResult:
 def parse(description: str, client: anthropic.Anthropic | None = None) -> ParseResult:
     """Parse a natural language description into structured extraction data."""
     if client is None:
-        client = anthropic.Anthropic()
+        from src.utils.ai_client import get_client
+        client = get_client()
 
     system_prompt = _load_prompt("system_prompt.txt")
     extraction_prompt = _load_prompt("extraction_prompt.txt").format(
