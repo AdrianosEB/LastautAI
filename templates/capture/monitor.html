@@ -79,7 +79,7 @@
         mediaStream.getTracks()[0].addEventListener('ended', stopRecording);
 
         document.addEventListener('click', onClickCapture);
-        captureTimer = setInterval(captureAndSend, 5 * 60 * 1000);
+        captureTimer = setInterval(captureAndSend, 60 * 1000);
         isRecording = true;
         updateUI();
     }
