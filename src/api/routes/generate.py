@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from src.api.models.requests import GenerateRequest

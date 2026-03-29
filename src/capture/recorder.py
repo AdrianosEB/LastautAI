@@ -3,11 +3,14 @@ Screen recorder thread — captures mouse clicks and app switches.
 Ported from LastautAI-screen-capture/capture/recorder.py, adapted for SQLAlchemy.
 """
 
+import logging
 import time
 import threading
 import subprocess
 import platform
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 _recorders = {}   # user_id -> ScreenRecorder
 _lock = threading.Lock()
@@ -185,7 +188,7 @@ class ScreenRecorder(threading.Thread):
 
             # Analyze with Claude
             description = analyze_events(snapshot)
-            print(f'[Recorder] analyzer response: {description[:100]}...' if len(description) > 100 else f'[Recorder] analyzer response: {description}')
+            logger.info('Analyzer response: %s', description[:100])
 
             if description and 'not enough data' not in description.lower():
                 raw = '\n'.join(
@@ -200,7 +203,7 @@ class ScreenRecorder(threading.Thread):
                     from src.capture.analyzer import summarize_suggestion
                     summary = summarize_suggestion(description)
                 except Exception as exc:
-                    print(f'[Recorder] Summary error: {exc}')
+                    logger.warning('Summary error: %s', exc)
 
                 db.add(WorkflowSuggestion(
                     user_id=self.user_id,
@@ -209,11 +212,11 @@ class ScreenRecorder(threading.Thread):
                     raw_events=raw,
                 ))
                 db.commit()
-                print(f'[Recorder] Saved suggestion for user {self.user_id}: {summary or description[:60]}')
+                logger.info('Saved suggestion for user %s: %s', self.user_id, summary or description[:60])
             else:
-                print(f'[Recorder] Skipped saving — response filtered out')
+                logger.info('Skipped saving — response filtered out')
         except Exception as exc:
-            print(f'[Recorder] Error during flush: {exc}')
+            logger.error('Error during flush: %s', exc)
             db.rollback()
         finally:
             db.close()

@@ -29,14 +29,18 @@ def signup(req: SignupRequest, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    user = User(
-        username=req.username,
-        email=req.email,
-        password_hash=hash_password(req.password),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        user = User(
+            username=req.username,
+            email=req.email,
+            password_hash=hash_password(req.password),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to create account")
 
     return {"token": create_token(user.id), "user": {"id": user.id, "username": user.username}}
 
