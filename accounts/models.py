@@ -1,4 +1,9 @@
 from django.db import models
 
-# Using Django's built-in User model for authentication.
-# Import it elsewhere with: from django.contrib.auth.models import User
+
+class WaitlistEntry(models.Model):
+    email      = models.EmailField(unique=True)
+    joined_at  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from .models import WaitlistEntry
+
+ALLOWED_EMAIL = 'testuser@gmail.com'
 
 
 def login_view(request):
@@ -11,6 +14,11 @@ def login_view(request):
     if request.method == 'POST':
         email    = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
+
+        if email != ALLOWED_EMAIL:
+            WaitlistEntry.objects.get_or_create(email=email)
+            return redirect('waitlist')
+
         try:
             username = User.objects.get(email=email).username
         except User.DoesNotExist:
@@ -40,6 +48,10 @@ def signup_view(request):
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
 
+        if email != ALLOWED_EMAIL:
+            WaitlistEntry.objects.get_or_create(email=email)
+            return redirect('waitlist')
+
         if not email or not password1:
             messages.error(request, 'Email and password are required.')
         elif password1 != password2:
@@ -52,6 +64,11 @@ def signup_view(request):
             return redirect('home')
 
     return render(request, 'accounts/signup.html')
+
+
+def waitlist_view(request):
+    count = WaitlistEntry.objects.count()
+    return render(request, 'accounts/waitlist.html', {'count': count})
 
 
 def home_view(request):

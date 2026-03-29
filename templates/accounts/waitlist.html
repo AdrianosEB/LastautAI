@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Coming Soon — LastautAI{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-box" style="text-align:center;">
+        <h1 style="font-size:2rem; margin-bottom:0.5rem;">Something interesting is coming soon.</h1>
+        <p style="color:#777; margin-bottom:2rem;">We're putting the finishing touches on something you'll love.</p>
+
+        <div style="background:#f3f4f6; border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
+            <p style="font-size:2rem; font-weight:700; margin:0;">{{ count }}</p>
+            <p style="color:#777; margin:0.25rem 0 0;">{{ count|pluralize:"person,people" }} already on the waitlist</p>
+        </div>
+
+        <p style="color:#aaa; font-size:0.85rem;">You've been added to the list. We'll reach out when it's ready.</p>
+    </div>
+</div>
+{% endblock %}
