@@ -55,7 +55,7 @@ def execute_transform_data(action: str, description: str, inputs: dict, context:
 
 
 def execute_send_email(action: str, description: str, inputs: dict, context: dict) -> dict:
-    """Simulate sending an email (log it, return confirmation)."""
+    """Log email details and return confirmation. Simulated — connect SendGrid/SES for real delivery."""
     to = inputs.get("to", "unknown")
     subject = inputs.get("subject", "No subject")
     body = inputs.get("body", "")
@@ -63,16 +63,13 @@ def execute_send_email(action: str, description: str, inputs: dict, context: dic
     if isinstance(body, (dict, list)):
         body = json.dumps(body, indent=2)
 
-    logger.info("Sending email to: %s, subject: %s", to, subject)
-
-    # In production, this would call SendGrid/SES/SMTP
-    # For now, we log it and return success
+    logger.info("Email (simulated) to=%s subject=%s", to, subject)
     return {
-        "sent": True,
+        "delivered": True,
+        "simulated": True,
         "to": to,
         "subject": subject,
         "body_preview": str(body)[:200],
-        "note": "Email simulated — integrate with SendGrid/SES for real delivery",
     }
 
 

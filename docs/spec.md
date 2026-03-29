@@ -527,7 +527,47 @@ assert len(result) > 0
 
 Inject fake events into a recorder, call flush, verify suggestion appears via the API, approve it, and verify it generates a workflow.
 
-## 13. Milestones
+## 13. AI Execution Engine
+
+### 13.1 Overview
+
+In addition to generating workflow definitions, the system can execute workflows live using Claude's tool-use capability. This provides immediate, on-demand execution without requiring an external workflow engine.
+
+### 13.2 Endpoint
+
+`POST /workflows/execute-ai` — accepts a workflow description and optional workflow JSON, returns an SSE (Server-Sent Events) stream of execution progress.
+
+### 13.3 Tool Catalog
+
+| Tool | Implementation | Description |
+|------|---------------|-------------|
+| `fetch_url` | Real (httpx) | HTTP GET/POST/PUT/DELETE to any URL |
+| `send_slack_message` | Real (webhook) | Post to Slack channel via `SLACK_WEBHOOK_URL` env var. Simulated if not set |
+| `send_email` | Simulated | Logs email details. Connect SendGrid/SES for production delivery |
+| `transform_data` | Real (Claude) | Claude processes data according to a natural language instruction |
+| `create_document` | Real | Generates document content with title, format, and body |
+| `log_result` | Real | Logs the final workflow output |
+
+### 13.4 Execution Loop
+
+1. System prompt instructs Claude to execute the workflow step by step using available tools
+2. Claude calls tools one at a time; each tool call and result is streamed as an SSE event
+3. Tool results are fed back into the conversation for multi-turn execution
+4. Loop terminates on `end_turn` or after 15 iterations (safety limit)
+
+### 13.5 SSE Event Types
+
+- `thinking` — Claude's reasoning text between tool calls
+- `step_start` — tool invocation with name and input parameters
+- `step_complete` — tool result after execution
+- `error` — execution error
+- `complete` — workflow finished
+
+### 13.6 UI
+
+A full-screen overlay displays the execution feed with animated step cards, showing each tool call, its inputs, and results in real time.
+
+## 14. Milestones
 
 | Phase | Deliverable                                                        |
 |-------|--------------------------------------------------------------------|
@@ -539,3 +579,5 @@ Inject fake events into a recorder, call flush, verify suggestion appears via th
 | 6     | Web UI with step-by-step visualization and n8n export              |
 | 7     | User accounts, database, workflow history, and dashboard           |
 | 8     | Screen recording, pattern detection, suggestions, and handoff      |
+| 9     | AI execution engine — Claude tool-use with SSE streaming           |
+| 10    | n8n integration — deploy, track, and delete workflows via REST API |
