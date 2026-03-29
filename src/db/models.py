@@ -37,3 +37,32 @@ class Workflow(Base):
 
     def get_workflow(self) -> dict:
         return json.loads(self.workflow_json)
+
+
+class EventLog(Base):
+    __tablename__ = "event_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    event_type = Column(String(50), nullable=False)
+    app_name = Column(String(200), nullable=False)
+    window_title = Column(String(500), nullable=True, default="")
+    detail = Column(String(500), nullable=True, default="")
+
+    user = relationship("User")
+
+
+class WorkflowSuggestion(Base):
+    __tablename__ = "workflow_suggestions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    description = Column(Text, nullable=False)
+    summary = Column(String(300), nullable=True, default="")
+    refined_prompt = Column(Text, nullable=True, default="")
+    raw_events = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending")
+
+    user = relationship("User")

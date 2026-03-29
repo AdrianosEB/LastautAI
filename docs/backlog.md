@@ -45,12 +45,16 @@ workflow-automation/
 │   │
 │   ├── db/
 │   │   ├── database.py                     # SQLAlchemy engine, session factory, init_db()
-│   │   └── models.py                       # User and Workflow ORM models
+│   │   └── models.py                       # User, Workflow, EventLog, WorkflowSuggestion ORM models
 │   │
 │   ├── auth/
 │   │   ├── hashing.py                      # bcrypt password hashing/verification
 │   │   ├── jwt.py                          # JWT token creation and validation
 │   │   └── dependencies.py                 # FastAPI dependency: get_current_user from token
+│   │
+│   ├── capture/
+│   │   ├── recorder.py                     # ScreenRecorder thread: mouse clicks, app switches (from screen-capture project)
+│   │   └── analyzer.py                     # Claude Haiku pattern analysis on event batches
 │   │
 │   └── prompts/
 │       ├── system_prompt.txt               # System prompt for LLM-based parsing (Claude API)
@@ -200,3 +204,32 @@ Tasks are grouped by phase (matching spec.md milestones) and ordered by dependen
 - [ ] **P7-16**: Update UI — My Workflows tab shows list of past workflows with name, date, re-export and re-deploy actions
 - [ ] **P7-17**: Add `data/` to `.gitignore` so the SQLite database is never committed
 - [x] **P7-18**: Update `docs/vision.md`, `docs/spec.md`, and `docs/backlog.md` to document user accounts and dashboard
+
+### Phase 8 — Screen Recording, Pattern Detection, and Suggestions
+
+**Source:** Backend ported from `LastautAI-screen-capture/capture/` (recorder.py, analyzer.py, models.py). UI integrated into existing dashboard.
+
+- [ ] **P8-1**: Add `pynput` to `pyproject.toml`
+- [ ] **P8-2**: Port `capture/recorder.py` → `src/capture/recorder.py` — adapt `_flush_and_analyze` to use SQLAlchemy instead of Django ORM, replace `User.objects.get` with SQLAlchemy session queries
+- [ ] **P8-3**: Port `capture/analyzer.py` → `src/capture/analyzer.py` — keep Claude Haiku call, use shared Anthropic client
+- [ ] **P8-4**: Add `EventLog` and `WorkflowSuggestion` models to `src/db/models.py` — event_type, app_name, window_title, detail, status fields matching the Django originals
+- [ ] **P8-5**: Create `src/api/routes/capture.py` with endpoints:
+  - `POST /capture/start` — start recording for current user
+  - `POST /capture/stop` — stop recording for current user
+  - `GET /capture/status` — return `{recording: true/false}`
+  - `GET /capture/suggestions` — list pending suggestions for current user
+  - `POST /capture/suggestions/{id}` — update status (approve/dismiss)
+- [ ] **P8-6**: Register capture router in `src/api/server.py`
+- [ ] **P8-7**: Update UI — Record tab: start/stop button with pulsing status indicator, suggestion cards with approve/dismiss actions
+- [ ] **P8-8**: Update UI — Suggested tab: show approved suggestions, button to "Send to Create Workflow" which pre-fills the text area with the suggestion description
+- [ ] **P8-9**: Wire handoff: when user approves a suggestion, pre-populate the Create Workflow tab with the suggestion text so the user can review and generate
+- [ ] **P8-10**: Add `.env.example` entry for `ANTHROPIC_API_KEY` (used by both pipeline and analyzer)
+
+### Phase 8 — Testing
+
+- [ ] **P8-T1**: Test event buffer — create ScreenRecorder, call `_log()` directly, verify buffer contents
+- [ ] **P8-T2**: Test analyzer — call `analyze_events()` with fake events, verify Claude returns a string
+- [ ] **P8-T3**: Test flush — inject events into buffer, call `_flush_and_analyze()`, verify EventLog and WorkflowSuggestion rows created
+- [ ] **P8-T4**: Test API endpoints — POST start/stop, GET suggestions, POST approve/dismiss via httpx test client
+- [ ] **P8-T5**: Test end-to-end — inject events → flush → verify suggestion appears via GET → approve → verify it can be sent to generate-steps
+- [x] **P8-T6**: Update docs (vision.md, spec.md, backlog.md) with recording architecture, testing plan, and Phase 8 tasks

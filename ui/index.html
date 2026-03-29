@@ -27,9 +27,132 @@
       min-height: 100vh;
     }
 
+    /* ---- LANDING PAGE ---- */
+    .landing { min-height: 100vh; display: flex; flex-direction: column; }
+    .landing-nav {
+      padding: 1.25rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .landing-logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .landing-nav-btns { display: flex; gap: 0.75rem; }
+    .btn-nav {
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+    .btn-nav:hover { border-color: var(--accent); color: var(--text); }
+    .btn-nav.primary {
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      border: none;
+      color: white;
+    }
+    .btn-nav.primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+
+    .landing-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 0.3rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      color: var(--accent-light);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 700px;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent-light) 50%, var(--success) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      max-width: 550px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; margin-bottom: 4rem; }
+    .btn-hero {
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-hero.primary {
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      color: white;
+    }
+    .btn-hero.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4); }
+    .btn-hero.secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn-hero.secondary:hover { border-color: var(--accent); color: var(--text); }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 900px;
+      width: 100%;
+      padding: 0 2rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      text-align: left;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--accent); }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 0.83rem; color: var(--text-dim); line-height: 1.6; }
+
+    .landing-footer {
+      padding: 2rem 3rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
     /* ---- AUTH SCREENS ---- */
     .auth-screen {
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
@@ -78,6 +201,8 @@
     .auth-card .btn-primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
     .auth-card .switch { text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim); }
     .auth-card .switch a { color: var(--accent-light); cursor: pointer; text-decoration: none; }
+    .auth-back { display: block; text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-dim); cursor: pointer; text-decoration: none; }
+    .auth-back:hover { color: var(--text); }
 
     /* ---- HEADER ---- */
     .header {
@@ -125,23 +250,12 @@
     }
     .tab:hover { color: var(--text); }
     .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
-    .tab.placeholder { opacity: 0.4; cursor: default; }
-    .tab.placeholder:hover { color: var(--text-dim); }
-    .tab-badge {
-      font-size: 0.65rem;
-      background: var(--surface2);
-      color: var(--text-dim);
-      padding: 0.1rem 0.4rem;
-      border-radius: 8px;
-      margin-left: 0.4rem;
-      vertical-align: middle;
-    }
 
     /* ---- TAB CONTENT ---- */
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* ---- CREATE WORKFLOW (same as before) ---- */
+    /* ---- CREATE WORKFLOW ---- */
     .create-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -264,27 +378,103 @@
     .history-item-meta .n8n-badge { color: var(--success); margin-left: 0.5rem; }
     .history-item-actions { display: flex; gap: 0.5rem; }
 
-    /* ---- PLACEHOLDER TABS ---- */
-    .placeholder-panel { padding: 4rem 2rem; text-align: center; color: var(--text-dim); }
-    .placeholder-panel .icon { font-size: 3rem; opacity: 0.2; margin-bottom: 1rem; }
-    .placeholder-panel h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text); }
-    .placeholder-panel p { font-size: 0.9rem; max-width: 400px; margin: 0 auto; line-height: 1.5; }
+    /* ---- RECORD TAB ---- */
+    .record-panel { padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .record-panel h2 { font-size: 1rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .record-control { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .record-status { display: flex; align-items: center; gap: 0.5rem; }
+    .record-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-dim); }
+    .record-dot.active { background: var(--error); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .record-label { font-size: 0.9rem; font-weight: 600; }
+    .record-timer { font-size: 0.85rem; color: var(--accent-light); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+    .btn-record { padding: 0.6rem 1.5rem; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .btn-record.start { background: var(--accent); color: white; }
+    .btn-record.stop { background: var(--error); color: white; }
+    .suggestion-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.5rem; }
+    .suggestion-desc { font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.75rem; }
+    .suggestion-meta { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .suggestion-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .suggestion-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+    .suggestion-badge.pending { background: rgba(253,203,110,0.15); color: var(--warning); }
+    .suggestion-badge.approved { background: rgba(0,206,201,0.15); color: var(--success); }
+    .suggestion-badge.dismissed { background: rgba(136,136,160,0.15); color: var(--text-dim); }
+    .btn-approve { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--success); background: rgba(0,206,201,0.1); color: var(--success); cursor: pointer; }
+    .btn-approve:hover { background: rgba(0,206,201,0.2); }
+    .btn-dismiss { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; }
+    .btn-dismiss:hover { border-color: var(--text-dim); }
+    .btn-send-create { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--accent); background: rgba(108,92,231,0.1); color: var(--accent-light); cursor: pointer; }
+    .btn-send-create:hover { background: rgba(108,92,231,0.2); }
+    .btn-delete { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--error); background: rgba(255,107,107,0.1); color: var(--error); cursor: pointer; }
+    .btn-delete:hover { background: rgba(255,107,107,0.2); }
+
+    /* ---- RECORDING ITEM ---- */
+    .recording-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.25rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .recording-item-info { flex: 1; }
+    .recording-item-title { font-size: 0.9rem; font-weight: 600; }
+    .recording-item-meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem; }
 
     /* ---- RESPONSIVE ---- */
     @media (max-width: 900px) {
       .create-layout { grid-template-columns: 1fr; height: auto; }
       .input-panel { border-right: none; border-bottom: 1px solid var(--border); }
       .output-panel { min-height: 60vh; }
+      .features { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2rem; }
+      .landing-nav { padding: 1rem 1.5rem; }
     }
   </style>
 </head>
 <body>
 
+<!-- ==================== LANDING PAGE ==================== -->
+<div id="landingScreen" class="landing">
+  <nav class="landing-nav">
+    <div class="landing-logo">LastautAI</div>
+    <div class="landing-nav-btns">
+      <button class="btn-nav" onclick="showLogin()">Log In</button>
+      <button class="btn-nav primary" onclick="showSignup()">Get Started</button>
+    </div>
+  </nav>
+  <div class="landing-hero">
+    <span class="hero-badge">Powered by AI</span>
+    <h1 class="hero-title">Turn plain English into automated workflows</h1>
+    <p class="hero-subtitle">
+      Describe what you want automated in natural language. LastautAI builds the workflow, connects to n8n, and deploys it &mdash; no code required. Or let it watch your screen and suggest automations for you.
+    </p>
+    <div class="hero-cta">
+      <button class="btn-hero primary" onclick="showSignup()">Get Started Free</button>
+      <button class="btn-hero secondary" onclick="showLogin()">Log In</button>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">&#9997;</div>
+        <h3>Describe in Plain English</h3>
+        <p>Write what you want automated the way you'd explain it to a coworker. Our AI handles the rest.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128065;</div>
+        <h3>Smart Screen Recording</h3>
+        <p>Record your screen activity and let AI detect repetitive patterns it can turn into workflows.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9889;</div>
+        <h3>One-Click n8n Deploy</h3>
+        <p>Generated workflows deploy directly to your n8n instance. From idea to running automation in seconds.</p>
+      </div>
+    </div>
+  </div>
+  <div class="landing-footer">LastautAI &mdash; Natural Language to Workflow Automation</div>
+</div>
+
 <!-- ==================== AUTH: LOGIN ==================== -->
 <div id="loginScreen" class="auth-screen">
   <div class="auth-card">
     <h1>LastautAI</h1>
-    <p class="sub">Natural Language to Workflow Automation</p>
+    <p class="sub">Welcome back</p>
     <label>Username</label>
     <input type="text" id="loginUser" placeholder="Username">
     <label>Password</label>
@@ -292,11 +482,12 @@
     <div class="auth-error" id="loginError"></div>
     <button class="btn-primary" onclick="doLogin()">Log In</button>
     <p class="switch">Don't have an account? <a onclick="showSignup()">Sign up</a></p>
+    <a class="auth-back" onclick="showLanding()">Back to home</a>
   </div>
 </div>
 
 <!-- ==================== AUTH: SIGNUP ==================== -->
-<div id="signupScreen" class="auth-screen" style="display:none;">
+<div id="signupScreen" class="auth-screen">
   <div class="auth-card">
     <h1>Create Account</h1>
     <p class="sub">Start automating in plain English</p>
@@ -309,6 +500,7 @@
     <div class="auth-error" id="signupError"></div>
     <button class="btn-primary" onclick="doSignup()">Sign Up</button>
     <p class="switch">Already have an account? <a onclick="showLogin()">Log in</a></p>
+    <a class="auth-back" onclick="showLanding()">Back to home</a>
   </div>
 </div>
 
@@ -323,8 +515,8 @@
   </div>
 
   <div class="tab-bar">
-    <div class="tab placeholder" title="Coming soon">Record<span class="tab-badge">soon</span></div>
-    <div class="tab placeholder" title="Coming soon">Suggested<span class="tab-badge">soon</span></div>
+    <div class="tab" data-tab="record" onclick="switchTab('record', this)">Record</div>
+    <div class="tab" data-tab="suggested" onclick="switchTab('suggested', this)">Suggested</div>
     <div class="tab active" data-tab="create" onclick="switchTab('create', this)">Create Workflow</div>
     <div class="tab" data-tab="history" onclick="switchTab('history', this)">My Workflows</div>
   </div>
@@ -399,21 +591,34 @@
     </div>
   </div>
 
-  <!-- ---- TAB: RECORD (placeholder) ---- -->
+  <!-- ---- TAB: RECORD ---- -->
   <div class="tab-content" id="tab-record">
-    <div class="placeholder-panel">
-      <div class="icon">&#9898;</div>
-      <h2>Record</h2>
-      <p>Record your actions and we'll automatically generate a workflow from what you do. Coming soon.</p>
+    <div class="record-panel">
+      <h2>Screen Recording</h2>
+      <div class="record-control">
+        <div class="record-status">
+          <div class="record-dot" id="recordDot"></div>
+          <span class="record-label" id="recordLabel">Idle</span>
+        </div>
+        <span class="record-timer" id="recordTimer"></span>
+        <button class="btn-record start" id="recordBtn" onclick="toggleRecording()">Start Recording</button>
+      </div>
+      <p class="hint" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.5;">
+        Hit Start to record your screen activity. When you stop, AI analyzes the session and suggests automations in the Suggested tab.
+      </p>
+      <h2>Past Sessions</h2>
+      <div id="recordSuggestions"><p class="history-empty">No recordings yet. Start a session above.</p></div>
     </div>
   </div>
 
-  <!-- ---- TAB: SUGGESTED (placeholder) ---- -->
+  <!-- ---- TAB: SUGGESTED ---- -->
   <div class="tab-content" id="tab-suggested">
-    <div class="placeholder-panel">
-      <div class="icon">&#10024;</div>
+    <div class="record-panel">
       <h2>Suggested Workflows</h2>
-      <p>AI-suggested workflows based on your usage patterns. Coming soon.</p>
+      <p class="hint" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.5;">
+        AI-detected patterns from your recordings. Approve a suggestion to refine it, then send it to Create Workflow to generate and deploy.
+      </p>
+      <div id="suggestedList"><p class="history-empty">No suggestions yet.</p></div>
     </div>
   </div>
 </div>
@@ -425,6 +630,8 @@
   let currentWorkflow = null;
   let currentN8n = null;
   let savedWorkflowId = null;
+  let recordingStartTime = null;
+  let recordingTimerInterval = null;
 
   // ---- AUTH ----
   function headers() {
@@ -433,18 +640,27 @@
     return h;
   }
 
-  function showLogin() {
-    document.getElementById('loginScreen').style.display = 'flex';
+  function hideAll() {
+    document.getElementById('landingScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('signupScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'none';
+  }
+  function showLanding() {
+    hideAll();
+    document.getElementById('landingScreen').style.display = 'flex';
+  }
+  function showLogin() {
+    hideAll();
+    document.getElementById('loginScreen').style.display = 'flex';
   }
   function showSignup() {
-    document.getElementById('loginScreen').style.display = 'none';
+    hideAll();
     document.getElementById('signupScreen').style.display = 'flex';
   }
   function showApp(user) {
     currentUser = user;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('signupScreen').style.display = 'none';
+    hideAll();
     document.getElementById('appScreen').style.display = 'block';
     document.getElementById('headerUser').textContent = user.username;
   }
@@ -487,28 +703,28 @@
     localStorage.removeItem('token');
     currentUser = null;
     document.getElementById('appScreen').style.display = 'none';
-    showLogin();
+    showLanding();
   }
 
-  // Check existing session on load
   async function checkSession() {
     if (!token) return;
     try {
       const r = await fetch(API + '/auth/me', { headers: headers() });
       if (r.ok) { const d = await r.json(); showApp(d); }
       else { localStorage.removeItem('token'); token = null; }
-    } catch { /* server not reachable, show login */ }
+    } catch {}
   }
 
   // ---- TABS ----
   function switchTab(name, el) {
-    if (el && el.classList.contains('placeholder')) return;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     if (el) el.classList.add('active');
     else document.querySelector(`[data-tab="${name}"]`)?.classList.add('active');
     document.getElementById('tab-' + name).classList.add('active');
     if (name === 'history') loadHistory();
+    if (name === 'record') { checkRecordingStatus(); loadRecordSuggestions(); }
+    if (name === 'suggested') loadSuggestedTab();
   }
 
   // ---- HISTORY ----
@@ -529,6 +745,7 @@
           </div>
           <div class="history-item-actions">
             <button class="btn-sm" onclick="event.stopPropagation(); viewWorkflow(${w.id})">View</button>
+            <button class="btn-delete" onclick="event.stopPropagation(); deleteWorkflow(${w.id})" style="margin-left:0.5rem">Delete</button>
           </div>
         </div>
       `).join('') + '</div>';
@@ -540,7 +757,6 @@
       const r = await fetch(API + '/workflows/history/' + id, { headers: headers() });
       if (!r.ok) return;
       const d = await r.json();
-      // Switch to create tab and show the workflow
       switchTab('create');
       document.getElementById('description').value = d.description;
       currentWorkflow = d.workflow;
@@ -551,7 +767,7 @@
     } catch {}
   }
 
-  // ---- WORKFLOW GENERATION (same logic) ----
+  // ---- WORKFLOW GENERATION ----
   function useExample(el) { document.getElementById('description').value = el.textContent; }
   function clearAll() {
     document.getElementById('description').value = '';
@@ -572,10 +788,13 @@
     document.getElementById('meta-serializer').textContent = 'Produces final workflow JSON';
   }
   function toggleStage(name) { document.getElementById('body-' + name).classList.toggle('open'); }
-  function setStageActive(name) { document.getElementById('stage-' + name).className = 'stage active'; document.getElementById('meta-' + name).innerHTML = '<span class="spinner"></span>'; }
+  function setStageActive(name) {
+    document.getElementById('stage-' + name).className = 'stage active';
+    document.getElementById('meta-' + name).innerHTML = '<span class="spinner"></span>';
+  }
   function setStageDone(name, ms, data) {
     document.getElementById('stage-' + name).className = 'stage done';
-    document.getElementById('meta-' + name).textContent = ms + 'ms';
+    document.getElementById('meta-' + name).textContent = ms + ' ms';
     if (data) document.getElementById('body-' + name).innerHTML = '<pre>' + esc(JSON.stringify(data, null, 2)) + '</pre>';
   }
   function setStageError(name, msg) {
@@ -692,15 +911,181 @@
     try {
       const resp = await fetch(API + '/n8n/deploy', { method: 'POST', headers: headers(), body: JSON.stringify({ n8n_url: n8nUrl, api_key: apiKey, workflow: currentN8n, saved_id: savedWorkflowId }) });
       const data = await resp.json();
-      console.log('Deploy response:', resp.status, data);
       if (resp.ok && data.id) {
         statusEl.className = 'n8n-status success';
         statusEl.innerHTML = 'Deployed! Workflow ID: <strong>' + esc(String(data.id)) + '</strong><br><a href="' + esc(n8nUrl) + '/workflow/' + esc(String(data.id)) + '" target="_blank" style="color:var(--success)">Open in n8n &rarr;</a>';
       } else { statusEl.className = 'n8n-status error'; statusEl.textContent = JSON.stringify(data.detail || data.error || data, null, 2); }
-    } catch (err) { console.error(err); statusEl.className = 'n8n-status error'; statusEl.textContent = 'Could not reach API: ' + err.message; }
+    } catch (err) { statusEl.className = 'n8n-status error'; statusEl.textContent = 'Could not reach API: ' + err.message; }
     btn.disabled = false; btn.textContent = 'Deploy to n8n';
   }
   function enableDeploy() { document.getElementById('deployBtn').disabled = false; }
+
+  // ---- RECORDING ----
+  let recordingPollInterval = null;
+
+  async function checkRecordingStatus() {
+    try {
+      const r = await fetch(API + '/capture/status', { headers: headers() });
+      if (r.ok) {
+        const d = await r.json();
+        updateRecordingUI(d.recording);
+      }
+    } catch {}
+  }
+
+  function updateRecordingUI(isRecording) {
+    const dot = document.getElementById('recordDot');
+    const label = document.getElementById('recordLabel');
+    const btn = document.getElementById('recordBtn');
+    const timer = document.getElementById('recordTimer');
+    if (isRecording) {
+      dot.classList.add('active');
+      label.textContent = 'Recording...';
+      btn.textContent = 'Stop Recording';
+      btn.className = 'btn-record stop';
+      if (!recordingStartTime) recordingStartTime = Date.now();
+      if (!recordingTimerInterval) {
+        recordingTimerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+          const m = Math.floor(elapsed / 60);
+          const s = elapsed % 60;
+          timer.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }, 1000);
+      }
+    } else {
+      dot.classList.remove('active');
+      label.textContent = 'Idle';
+      btn.textContent = 'Start Recording';
+      btn.className = 'btn-record start';
+      timer.textContent = '';
+      recordingStartTime = null;
+      if (recordingTimerInterval) { clearInterval(recordingTimerInterval); recordingTimerInterval = null; }
+    }
+  }
+
+  async function toggleRecording() {
+    const btn = document.getElementById('recordBtn');
+    const isStop = btn.classList.contains('stop');
+    btn.disabled = true;
+    try {
+      const endpoint = isStop ? '/capture/stop' : '/capture/start';
+      const r = await fetch(API + endpoint, { method: 'POST', headers: headers() });
+      const d = await r.json();
+      updateRecordingUI(!isStop);
+      if (!isStop) {
+        recordingStartTime = Date.now();
+        if (!recordingPollInterval) {
+          recordingPollInterval = setInterval(loadRecordSuggestions, 30000);
+        }
+      } else {
+        if (recordingPollInterval) { clearInterval(recordingPollInterval); recordingPollInterval = null; }
+        loadRecordSuggestions();
+      }
+    } catch {}
+    btn.disabled = false;
+  }
+
+  async function loadRecordSuggestions() {
+    try {
+      const r = await fetch(API + '/capture/suggestions', { headers: headers() });
+      if (!r.ok) return;
+      const d = await r.json();
+      renderRecordingSessions(d.suggestions, 'recordSuggestions');
+    } catch {}
+  }
+
+  function renderRecordingSessions(suggestions, containerId) {
+    const el = document.getElementById(containerId);
+    if (suggestions.length === 0) {
+      el.innerHTML = '<p class="history-empty">No recordings yet. Start a session above.</p>';
+      return;
+    }
+    const total = suggestions.length;
+    el.innerHTML = suggestions.map((s, i) => {
+      const num = total - i;
+      const time = s.created_at ? new Date(s.created_at).toLocaleString() : '';
+      const title = s.summary || 'Analyzing...';
+      return `
+      <div class="recording-item">
+        <div class="recording-item-info">
+          <div class="recording-item-title">Session ${num}</div>
+          <div class="recording-item-meta">${time} &mdash; ${esc(title)}</div>
+        </div>
+        <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
+      </div>
+    `}).join('');
+  }
+
+  async function loadSuggestedTab() {
+    try {
+      const r = await fetch(API + '/capture/suggestions', { headers: headers() });
+      if (!r.ok) return;
+      const d = await r.json();
+      renderSuggestions(d.suggestions, 'suggestedList');
+    } catch {}
+  }
+
+  function renderSuggestions(suggestions, containerId) {
+    const el = document.getElementById(containerId);
+    if (suggestions.length === 0) {
+      el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
+      return;
+    }
+    el.innerHTML = suggestions.map(s => {
+      const promptText = (s.refined_prompt || s.description).replace(/'/g, "\\'").replace(/\n/g, ' ');
+      const title = (s.summary && s.summary.length > 0) ? s.summary : s.description.substring(0, 100);
+      return `
+      <div class="suggestion-card">
+        <div class="suggestion-meta">
+          <span class="suggestion-badge ${s.status}">${s.status}</span>
+          &nbsp; ${s.created_at ? new Date(s.created_at).toLocaleString() : ''}
+        </div>
+        <div class="suggestion-desc" style="font-size:1rem;font-weight:600;margin-bottom:0.5rem">${esc(title)}</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);cursor:pointer;margin-bottom:0.5rem" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          &#9654; Show details
+        </div>
+        <div class="suggestion-desc" style="display:none;font-size:0.8rem;color:var(--text-dim);line-height:1.6;background:rgba(255,255,255,0.03);padding:0.75rem;border-radius:6px">${esc(s.description)}</div>
+        <div class="suggestion-actions">
+          ${s.status === 'pending' ? `
+            <button class="btn-approve" onclick="approveSuggestion(${s.id})">Approve</button>
+            <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
+          ` : ''}
+          ${s.status === 'approved' ? `
+            <button class="btn-send-create" onclick="sendToCreate('${esc(promptText)}')">Generate Workflow &rarr;</button>
+          ` : ''}
+          <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
+        </div>
+      </div>
+    `}).join('');
+  }
+
+  async function approveSuggestion(id) {
+    await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'approved' }) });
+    loadRecordSuggestions();
+    loadSuggestedTab();
+  }
+
+  async function dismissSuggestion(id) {
+    await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'dismissed' }) });
+    loadRecordSuggestions();
+    loadSuggestedTab();
+  }
+
+  async function deleteSuggestion(id) {
+    await fetch(API + '/capture/suggestions/' + id, { method: 'DELETE', headers: headers() });
+    loadRecordSuggestions();
+    loadSuggestedTab();
+  }
+
+  async function deleteWorkflow(id) {
+    await fetch(API + '/workflows/history/' + id, { method: 'DELETE', headers: headers() });
+    loadHistory();
+  }
+
+  function sendToCreate(description) {
+    switchTab('create');
+    document.getElementById('description').value = description;
+  }
 
   // ---- KEYBOARD ----
   document.getElementById('description').addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate(); });
