@@ -134,7 +134,44 @@ def _resolve_inputs(inputs: dict, context: dict) -> dict:
 
 
 def _evaluate_condition(expression: str, context: dict) -> bool:
-    """Simple condition evaluator. For now, always returns True."""
-    # In a full implementation, this would parse and evaluate the expression
-    # against the context. For the MVP, we execute all steps.
+    """Evaluate a simple condition expression against the execution context.
+
+    Supports basic comparisons like 'step_1.status == success' and
+    'step_1.output.count > 0'. Falls back to True for complex expressions
+    that can't be parsed statically.
+    """
+    if not expression or not expression.strip():
+        return True
+
+    expr = expression.strip()
+
+    # Handle simple equality: "step_1.status == success"
+    for op, fn in [("!=", lambda a, b: a != b), ("==", lambda a, b: a == b),
+                   (">=", lambda a, b: float(a) >= float(b)),
+                   ("<=", lambda a, b: float(a) <= float(b)),
+                   (">", lambda a, b: float(a) > float(b)),
+                   ("<", lambda a, b: float(a) < float(b))]:
+        if op in expr:
+            left, right = [s.strip().strip('"').strip("'") for s in expr.split(op, 1)]
+            # Resolve left side from context (e.g. "step_1.status")
+            val = _resolve_dotpath(left, context)
+            if val is not None:
+                try:
+                    return fn(str(val), right)
+                except (ValueError, TypeError):
+                    return True
+            break
+
     return True
+
+
+def _resolve_dotpath(path: str, context: dict):
+    """Resolve a dot-separated path like 'step_1.output.count' from context."""
+    parts = path.split(".")
+    current = context
+    for part in parts:
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+        else:
+            return None
+    return current

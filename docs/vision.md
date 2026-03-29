@@ -72,6 +72,14 @@ Users see each processing stage (Parser, Analyzer, Planner, Serializer) execute 
 - **n8n-compatible export** — one-click conversion to n8n's workflow format, ready to import directly
 - Copy-to-clipboard and download buttons for immediate use in any automation platform
 
+### Dual Execution Paths
+The system provides two ways to run a generated workflow:
+
+1. **Run with AI** — Claude executes the workflow live using tool use (fetch URLs, send Slack messages, transform data, generate documents). A full-screen overlay shows each step executing in real time via SSE streaming. This is the primary path for immediate execution and demos.
+2. **Deploy to n8n** — Push the workflow to an n8n instance via its REST API for scheduled or event-driven execution. Workflows are converted to n8n's node format with proper connections and triggers.
+
+Both paths are available after workflow generation. "Run with AI" is for immediate, on-demand execution. n8n deployment is for persistent, recurring automations.
+
 ### Design Principles for the UI
 - **Show the work** — Every pipeline stage is visible and inspectable, reinforcing the "transparency over magic" principle
 - **Export-ready** — Output is not just viewable but immediately actionable in real automation tools
@@ -96,8 +104,8 @@ The system supports individual user accounts so that each person's workflows are
 The authenticated user lands on a dashboard with four sections:
 
 1. **Record** — Start/stop background screen recording. The system captures mouse clicks and app switches, sends batches to Claude for pattern analysis, and surfaces detected workflow patterns as suggestions
-2. **Suggested Workflows** — AI-detected patterns from recording sessions. Users can approve a suggestion (which sends it to the Create Workflow pipeline) or dismiss it
-3. **Create Workflow** — Type a workflow description in plain English, see the pipeline stages, and deploy to n8n
+2. **Suggested Workflows** — AI-detected patterns from recording sessions. Users can send a suggestion to the Create Workflow pipeline or dismiss it
+3. **Create Workflow** — Type a workflow description in plain English, see the pipeline stages, then run with AI or deploy to n8n
 4. **My Workflows** — History of all generated workflows with re-export and re-deploy
 
 ## Screen Recording and Pattern Detection
