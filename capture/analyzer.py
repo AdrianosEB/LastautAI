@@ -1,13 +1,13 @@
 import os
 import anthropic
 
-client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-
 
 def analyze_frame(image_b64: str, clicks: list) -> str:
     """Analyze a screenshot + click list and return a workflow description."""
     if not image_b64:
         return ''
+
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     click_summary = ''
     if clicks:
