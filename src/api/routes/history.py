@@ -24,27 +24,33 @@ def list_workflows(user: User = Depends(get_current_user), db: Session = Depends
         .order_by(Workflow.created_at.desc())
         .all()
     )
-    return [
-        {
-            "id": w.id,
-            "name": w.name,
-            "description": w.description,
-            "n8n_id": w.n8n_id,
-            "has_webhook": _has_webhook_trigger(w),
-            "created_at": w.created_at.isoformat() if w.created_at else None,
-        }
-        for w in workflows
-    ]
+    return [_workflow_summary(w) for w in workflows]
 
 
-def _has_webhook_trigger(w: Workflow) -> bool:
-    """Check if a workflow's trigger type is webhook or event."""
+def _workflow_summary(w: Workflow) -> dict:
+    """Build a workflow summary with trigger type and actionable URLs."""
     try:
         data = w.get_workflow()
-        trigger_type = data.get("trigger", {}).get("type", "")
-        return trigger_type in ("webhook", "event")
+        trigger = data.get("trigger", {})
+        trigger_type = trigger.get("type", "manual")
+        cron = trigger.get("config", {}).get("cron", "")
     except Exception:
-        return False
+        trigger_type, cron = "manual", ""
+
+    summary = {
+        "id": w.id,
+        "name": w.name,
+        "description": w.description,
+        "n8n_id": w.n8n_id,
+        "trigger_type": trigger_type,
+        "created_at": w.created_at.isoformat() if w.created_at else None,
+    }
+    if trigger_type in ("webhook", "event"):
+        summary["webhook_url"] = f"/workflows/{w.id}/trigger"
+    if trigger_type == "schedule" and cron:
+        summary["schedule_url"] = f"/workflows/{w.id}/schedule"
+        summary["cron"] = cron
+    return summary
 
 
 @router.get("/workflows/history/{workflow_id}")

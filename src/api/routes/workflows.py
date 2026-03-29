@@ -53,6 +53,7 @@ def _handle_pipeline_error(exc: Exception) -> JSONResponse:
 
 @router.post("/workflows/generate")
 async def generate(request: GenerateRequest):
+    """Generate a workflow definition from a natural language description."""
     try:
         result = generate_workflow(
             description=request.description,
@@ -73,6 +74,12 @@ async def generate_steps(
     user: User | None = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
+    """Generate a workflow with intermediate pipeline stage results.
+
+    Returns parser/analyzer/planner/serializer outputs with timing.
+    Auto-saves for authenticated users. Auto-detects webhook and
+    schedule triggers, returning actionable URLs in the response.
+    """
     try:
         stages = generate_workflow_steps(
             description=request.description,
@@ -113,11 +120,22 @@ async def generate_steps(
         db.refresh(w)
         stages["saved_id"] = w.id
 
+        # Auto-detect trigger type and surface actionable URLs
+        trigger_type = workflow_data.get("trigger", {}).get("type", "manual")
+        if trigger_type in ("webhook", "event"):
+            stages["webhook_url"] = f"/workflows/{w.id}/trigger"
+        if trigger_type == "schedule":
+            cron = workflow_data.get("trigger", {}).get("config", {}).get("cron", "")
+            if cron:
+                stages["schedule_url"] = f"/workflows/{w.id}/schedule"
+                stages["cron"] = cron
+
     return stages
 
 
 @router.post("/workflows/validate")
 async def validate(request: ValidateRequest):
+    """Validate a workflow definition against the JSON Schema contract."""
     import jsonschema
     schema = _load_schema()
     try:
