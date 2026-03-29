@@ -979,21 +979,21 @@
 
     // ── Action → n8n node mapping ──
     const map = {
-      fetch_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Fetch Data',         ver: 4.2, color: '#FF6D5A' },
-      http_request:      { type: 'n8n-nodes-base.httpRequest',      name: 'HTTP Request',       ver: 4.2, color: '#FF6D5A' },
-      transform_data:    { type: 'n8n-nodes-base.code',             name: 'Transform Data',     ver: 2,   color: '#6C5CE7' },
-      filter_data:       { type: 'n8n-nodes-base.filter',           name: 'Filter',             ver: 2,   color: '#FDCB6E' },
-      send_email:        { type: 'n8n-nodes-base.emailSend',        name: 'Send Email',         ver: 2.1, color: '#00CEC9' },
-      send_notification: { type: 'n8n-nodes-base.slack',            name: 'Send Notification',  ver: 2.2, color: '#00CEC9' },
-      send_slack:        { type: 'n8n-nodes-base.slack',            name: 'Slack Message',      ver: 2.2, color: '#E01E5A' },
-      write_file:        { type: 'n8n-nodes-base.writeBinaryFile',  name: 'Write File',         ver: 1,   color: '#8888A0' },
-      read_file:         { type: 'n8n-nodes-base.readBinaryFile',   name: 'Read File',          ver: 1,   color: '#8888A0' },
-      summarize:         { type: 'n8n-nodes-base.code',             name: 'Summarize',          ver: 2,   color: '#6C5CE7' },
-      aggregate:         { type: 'n8n-nodes-base.code',             name: 'Aggregate',          ver: 2,   color: '#6C5CE7' },
-      store_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Store Data',         ver: 4.2, color: '#FF6D5A' },
-      check_condition:   { type: 'n8n-nodes-base.if',               name: 'Check Condition',    ver: 2,   color: '#FDCB6E' },
-      wait:              { type: 'n8n-nodes-base.wait',             name: 'Wait',               ver: 1.1, color: '#8888A0' },
-      validate:          { type: 'n8n-nodes-base.code',             name: 'Validate',           ver: 2,   color: '#6C5CE7' },
+      fetch_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Fetch Data',         ver: 4.2 },
+      http_request:      { type: 'n8n-nodes-base.httpRequest',      name: 'HTTP Request',       ver: 4.2 },
+      transform_data:    { type: 'n8n-nodes-base.code',             name: 'Transform Data',     ver: 2 },
+      filter_data:       { type: 'n8n-nodes-base.filter',           name: 'Filter',             ver: 2 },
+      send_email:        { type: 'n8n-nodes-base.emailSend',        name: 'Send Email',         ver: 2.1 },
+      send_notification: { type: 'n8n-nodes-base.slack',            name: 'Send Notification',  ver: 2.2 },
+      send_slack:        { type: 'n8n-nodes-base.slack',            name: 'Slack Message',      ver: 2.2 },
+      write_file:        { type: 'n8n-nodes-base.writeBinaryFile',  name: 'Write File',         ver: 1 },
+      read_file:         { type: 'n8n-nodes-base.readBinaryFile',   name: 'Read File',          ver: 1 },
+      summarize:         { type: 'n8n-nodes-base.code',             name: 'Summarize',          ver: 2 },
+      aggregate:         { type: 'n8n-nodes-base.code',             name: 'Aggregate',          ver: 2 },
+      store_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Store Data',         ver: 4.2 },
+      check_condition:   { type: 'n8n-nodes-base.if',               name: 'Check Condition',    ver: 2 },
+      wait:              { type: 'n8n-nodes-base.wait',             name: 'Wait',               ver: 1.1 },
+      validate:          { type: 'n8n-nodes-base.code',             name: 'Validate',           ver: 2 },
     };
 
     // ── Trigger node ──
@@ -1003,14 +1003,12 @@
         id: uuid(), name: 'Schedule Trigger', type: 'n8n-nodes-base.scheduleTrigger',
         typeVersion: 1.1, position: [xStart, yCenter],
         parameters: { rule: { interval: [{ field: 'cronExpression', expression: wf.trigger.config?.cron || '0 9 * * 1' }] } },
-        color: '#00CEC9',
       };
     } else if (wf.trigger?.type === 'webhook') {
       trig = {
         id: uuid(), name: 'Webhook', type: 'n8n-nodes-base.webhook',
         typeVersion: 1.1, position: [xStart, yCenter],
         parameters: { path: wf.trigger.config?.webhook_path || '/webhook', httpMethod: 'POST' },
-        color: '#FF6D5A',
       };
     } else {
       trig = {
@@ -1040,7 +1038,7 @@
     // ── Step nodes ──
     const stepNodes = [];
     (wf.steps || []).forEach((s, i) => {
-      const m = map[s.action] || { type: 'n8n-nodes-base.code', name: s.action || ('Step ' + (i + 1)), ver: 2, color: '#A29BFE' };
+      const m = map[s.action] || { type: 'n8n-nodes-base.code', name: s.action || ('Step ' + (i + 1)), ver: 2 };
 
       // Deduplicate names
       let nm = m.name;
@@ -1060,9 +1058,6 @@
         notesInFlow: true,
         notes: s.description || '',
       };
-
-      // Add color if available
-      if (m.color) nd.color = m.color;
 
       // Populate some parameters based on action type
       if (s.action === 'fetch_data' || s.action === 'http_request') {
@@ -1094,7 +1089,6 @@
       nodes,
       connections: conns,
       settings: { executionOrder: 'v1' },
-      tags: [{ name: 'LastautAI' }],
     };
   }
 
