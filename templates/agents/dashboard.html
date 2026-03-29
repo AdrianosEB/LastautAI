@@ -1,118 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Dashboard</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-</head>
-<body>
-    <div class="dashboard">
-        <header class="dash-header">
-            <h1>LastautAI — Agent Dashboard</h1>
-            <a href="{% url 'logout' %}">Log Out</a>
-        </header>
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Agents — LastautAI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">{% endblock %}
 
-        <div class="dash-body">
-            <!-- Input panel -->
-            <section class="panel input-panel">
-                <h2>Run an Agent</h2>
+{% block content %}
+<div class="dash-body">
+    <!-- Input panel -->
+    <section class="panel input-panel">
+        <h2>Run an Agent</h2>
 
-                <label for="agent-select">Agent</label>
-                <select id="agent-select">
-                    <option value="orchestrator">Auto-route (Orchestrator)</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="sales">Sales</option>
-                    <option value="support">Customer Support</option>
-                    <option value="operations">Operations</option>
-                </select>
+        <label for="agent-select">Agent</label>
+        <select id="agent-select">
+            <option value="orchestrator">Auto-route (Orchestrator)</option>
+            <option value="marketing">Marketing</option>
+            <option value="sales">Sales</option>
+            <option value="support">Customer Support</option>
+            <option value="operations">Operations</option>
+        </select>
 
-                <label for="task-input">Task</label>
-                <textarea id="task-input" rows="5" placeholder="e.g. Write a cold outreach email for our SaaS product..."></textarea>
+        <label for="task-input">Task</label>
+        <textarea id="task-input" rows="5" placeholder="e.g. Write a cold outreach email for our SaaS product..."></textarea>
 
-                <button id="run-btn">Run</button>
+        <button id="run-btn">Run</button>
 
-                <div id="result-box" class="result-box hidden">
-                    <p class="result-meta">Handled by: <strong id="result-agent"></strong></p>
-                    <pre id="result-text"></pre>
-                </div>
-
-                <div id="error-box" class="error hidden"></div>
-                <div id="loading" class="loading hidden">Running agent...</div>
-            </section>
-
-            <!-- History panel -->
-            <section class="panel history-panel">
-                <h2>Recent Runs</h2>
-                {% if recent_runs %}
-                    <ul class="run-list">
-                        {% for run in recent_runs %}
-                        <li class="run-item">
-                            <span class="run-agent">{{ run.agent_name }}</span>
-                            <span class="run-time">{{ run.created_at|date:"M d, H:i" }}</span>
-                            <p class="run-task">{{ run.task|truncatechars:80 }}</p>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="empty">No runs yet.</p>
-                {% endif %}
-            </section>
+        <div id="result-box" class="result-box hidden">
+            <p class="result-meta">Handled by: <strong id="result-agent"></strong></p>
+            <pre id="result-text"></pre>
         </div>
-    </div>
 
-    <script>
-        const btn = document.getElementById('run-btn');
-        const taskInput = document.getElementById('task-input');
-        const agentSelect = document.getElementById('agent-select');
-        const resultBox = document.getElementById('result-box');
-        const resultAgent = document.getElementById('result-agent');
-        const resultText = document.getElementById('result-text');
-        const errorBox = document.getElementById('error-box');
-        const loading = document.getElementById('loading');
+        <div id="error-box" class="error hidden"></div>
+        <div id="loading" class="loading hidden">Running agent...</div>
+    </section>
 
-        btn.addEventListener('click', async () => {
-            const task = taskInput.value.trim();
-            if (!task) return;
+    <!-- History panel -->
+    <section class="panel history-panel">
+        <h2>Recent Runs</h2>
+        {% if recent_runs %}
+            <ul class="run-list">
+                {% for run in recent_runs %}
+                <li class="run-item">
+                    <span class="run-agent">{{ run.agent_name }}</span>
+                    <span class="run-time">{{ run.created_at|date:"M d, H:i" }}</span>
+                    <p class="run-task">{{ run.task|truncatechars:80 }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">No runs yet.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
 
-            resultBox.classList.add('hidden');
-            errorBox.classList.add('hidden');
-            loading.classList.remove('hidden');
-            btn.disabled = true;
+{% block extra_js %}
+<script>
+    const btn = document.getElementById('run-btn');
+    const taskInput = document.getElementById('task-input');
+    const agentSelect = document.getElementById('agent-select');
+    const resultBox = document.getElementById('result-box');
+    const resultAgent = document.getElementById('result-agent');
+    const resultText = document.getElementById('result-text');
+    const errorBox = document.getElementById('error-box');
+    const loading = document.getElementById('loading');
 
-            try {
-                const resp = await fetch("{% url 'run_agent' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({
-                        task: task,
-                        agent: agentSelect.value,
-                    }),
-                });
+    btn.addEventListener('click', async () => {
+        const task = taskInput.value.trim();
+        if (!task) return;
 
-                const data = await resp.json();
+        resultBox.classList.add('hidden');
+        errorBox.classList.add('hidden');
+        loading.classList.remove('hidden');
+        btn.disabled = true;
 
-                if (!resp.ok) {
-                    errorBox.textContent = data.error || 'Something went wrong.';
-                    errorBox.classList.remove('hidden');
-                } else {
-                    resultAgent.textContent = data.agent_name;
-                    resultText.textContent = data.result;
-                    resultBox.classList.remove('hidden');
-                }
-            } catch (e) {
-                errorBox.textContent = 'Network error.';
+        try {
+            const resp = await fetch("{% url 'run_agent' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ task, agent: agentSelect.value }),
+            });
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                errorBox.textContent = data.error || 'Something went wrong.';
                 errorBox.classList.remove('hidden');
-            } finally {
-                loading.classList.add('hidden');
-                btn.disabled = false;
+            } else {
+                resultAgent.textContent = data.agent_name;
+                resultText.textContent = data.result;
+                resultBox.classList.remove('hidden');
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (e) {
+            errorBox.textContent = 'Network error.';
+            errorBox.classList.remove('hidden');
+        } finally {
+            loading.classList.add('hidden');
+            btn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

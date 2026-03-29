@@ -1,18 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome, {{ request.user.username }}!</h1>
-        <p>You're logged in.</p>
-        <a href="{% url 'agent_dashboard' %}" style="display:block; margin-bottom: 0.5rem;">Go to Agent Dashboard</a>
-        <a href="{% url 'logout' %}">Log Out</a>
+{% extends "base.html" %}
+{% block title %}Home — LastautAI{% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin: 3rem auto;">
+    <div class="panel">
+        <h1 style="margin-bottom:0.5rem;">Welcome, {{ request.user.username }}</h1>
+        <p style="color:#777; margin-bottom:1.5rem;">What would you like to do?</p>
+
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <a href="{% url 'monitor' %}" class="home-card">
+                <strong>Activity Monitor</strong>
+                <span>Record your screen patterns and get automation suggestions</span>
+            </a>
+            <a href="{% url 'agent_dashboard' %}" class="home-card">
+                <strong>Agent Dashboard</strong>
+                <span>Run AI agents across marketing, sales, support, and operations</span>
+            </a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.15s;
+}
+.home-card:hover { background: #f9fafb; }
+.home-card strong { font-size: 0.95rem; }
+.home-card span { font-size: 0.85rem; color: #777; }
+</style>
+{% endblock %}

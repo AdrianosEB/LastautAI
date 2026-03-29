@@ -1,30 +1,3 @@
-.dashboard {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: #f4f4f4;
-    font-family: sans-serif;
-}
-
-.dash-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #1a1a1a;
-    color: white;
-    padding: 1rem 2rem;
-}
-
-.dash-header h1 {
-    font-size: 1.2rem;
-    margin: 0;
-}
-
-.dash-header a {
-    color: #aaa;
-    font-size: 0.9rem;
-}
-
 .dash-body {
     display: flex;
     gap: 1.5rem;
