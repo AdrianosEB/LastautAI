@@ -35,13 +35,19 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(15, 15, 19, 0.8);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .landing-logo {
-      font-size: 1.3rem;
-      font-weight: 700;
+      font-size: 1.4rem;
+      font-weight: 800;
       background: linear-gradient(135deg, var(--accent-light), var(--success));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
     }
     .landing-nav-btns { display: flex; gap: 0.75rem; }
     .btn-nav {
@@ -61,7 +67,7 @@
       border: none;
       color: white;
     }
-    .btn-nav.primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+    .btn-nav.primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); transform: translateY(-1px); }
 
     .landing-hero {
       flex: 1;
@@ -70,64 +76,121 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 5rem 2rem 3rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,92,231,0.12) 0%, transparent 70%);
     }
     .hero-badge {
-      display: inline-block;
-      padding: 0.3rem 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 1rem;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 20px;
       font-size: 0.78rem;
       color: var(--accent-light);
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
+    .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
     .hero-title {
-      font-size: 3.2rem;
+      font-size: 3.5rem;
       font-weight: 800;
-      line-height: 1.15;
-      max-width: 700px;
-      margin-bottom: 1.25rem;
-      background: linear-gradient(135deg, var(--text) 0%, var(--accent-light) 50%, var(--success) 100%);
+      line-height: 1.1;
+      max-width: 750px;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent-light) 60%, var(--success) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .hero-subtitle {
       font-size: 1.15rem;
       color: var(--text-dim);
-      max-width: 550px;
+      max-width: 520px;
       line-height: 1.7;
       margin-bottom: 2.5rem;
     }
-    .hero-cta { display: flex; gap: 1rem; margin-bottom: 4rem; }
+    .hero-cta { display: flex; gap: 1rem; margin-bottom: 5rem; }
     .btn-hero {
-      padding: 0.85rem 2rem;
+      padding: 0.9rem 2.25rem;
       border-radius: 10px;
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
-      transition: all 0.2s;
+      transition: all 0.25s;
     }
     .btn-hero.primary {
       background: linear-gradient(135deg, var(--accent), #7c5ce7);
       color: white;
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.25);
     }
-    .btn-hero.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4); }
+    .btn-hero.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 92, 231, 0.45); }
     .btn-hero.secondary {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-dim);
     }
-    .btn-hero.secondary:hover { border-color: var(--accent); color: var(--text); }
+    .btn-hero.secondary:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
+
+    /* How it works */
+    .how-it-works {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+    }
+    .how-it-works h2 {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 2rem;
+    }
+    .steps-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .step {
+      flex: 1;
+      text-align: center;
+      padding: 1.25rem 1rem;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-light);
+      margin-bottom: 0.75rem;
+    }
+    .step h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .step p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
+    .step-arrow {
+      display: flex;
+      align-items: center;
+      padding-top: 2rem;
+      color: var(--border);
+      font-size: 1.2rem;
+    }
 
     .features {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
+      gap: 1.25rem;
       max-width: 900px;
       width: 100%;
       padding: 0 2rem;
+      margin-bottom: 4rem;
     }
     .feature-card {
       background: var(--surface);
@@ -135,18 +198,30 @@
       border-radius: var(--radius);
       padding: 1.75rem;
       text-align: left;
-      transition: border-color 0.2s;
+      transition: all 0.25s;
     }
-    .feature-card:hover { border-color: var(--accent); }
-    .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
-    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .feature-icon.purple { background: rgba(108,92,231,0.15); }
+    .feature-icon.teal { background: rgba(0,206,201,0.15); }
+    .feature-icon.orange { background: rgba(255,109,90,0.15); }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
     .feature-card p { font-size: 0.83rem; color: var(--text-dim); line-height: 1.6; }
 
     .landing-footer {
       padding: 2rem 3rem;
       border-top: 1px solid var(--border);
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text-dim);
     }
 
@@ -156,6 +231,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(108,92,231,0.08) 0%, transparent 70%);
     }
     .auth-card {
       background: var(--surface);
@@ -214,13 +290,16 @@
     }
     .header h1 {
       font-size: 1.3rem;
-      font-weight: 700;
+      font-weight: 800;
       background: linear-gradient(135deg, var(--accent-light), var(--success));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      cursor: pointer;
+      letter-spacing: -0.02em;
     }
     .header-right { display: flex; align-items: center; gap: 1rem; }
     .header-user { font-size: 0.85rem; color: var(--text-dim); }
+    .header-greeting { font-size: 0.85rem; color: var(--text); font-weight: 500; }
     .btn-logout {
       padding: 0.35rem 0.75rem;
       font-size: 0.78rem;
@@ -247,9 +326,10 @@
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: all 0.2s;
+      position: relative;
     }
-    .tab:hover { color: var(--text); }
-    .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); }
+    .tab:hover { color: var(--text); background: rgba(108,92,231,0.04); }
+    .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); background: rgba(108,92,231,0.06); }
 
     /* ---- TAB CONTENT ---- */
     .tab-content { display: none; }
@@ -423,8 +503,11 @@
       .input-panel { border-right: none; border-bottom: 1px solid var(--border); }
       .output-panel { min-height: 60vh; }
       .features { grid-template-columns: 1fr; }
-      .hero-title { font-size: 2rem; }
+      .hero-title { font-size: 2.2rem; }
       .landing-nav { padding: 1rem 1.5rem; }
+      .steps-row { flex-direction: column; align-items: center; }
+      .step-arrow { transform: rotate(90deg); padding: 0; }
+      .hero-cta { flex-direction: column; align-items: center; }
     }
   </style>
 </head>
@@ -440,34 +523,58 @@
     </div>
   </nav>
   <div class="landing-hero">
-    <span class="hero-badge">Powered by AI</span>
+    <span class="hero-badge">Powered by Claude AI</span>
     <h1 class="hero-title">Turn plain English into automated workflows</h1>
     <p class="hero-subtitle">
-      Describe what you want automated in natural language. LastautAI builds the workflow, connects to n8n, and deploys it &mdash; no code required. Or let it watch your screen and suggest automations for you.
+      Describe what you want automated in natural language. LastautAI builds the workflow, connects to n8n, and deploys it &mdash; no code required.
     </p>
     <div class="hero-cta">
       <button class="btn-hero primary" onclick="showSignup()">Get Started Free</button>
-      <button class="btn-hero secondary" onclick="showLogin()">Log In</button>
+      <button class="btn-hero secondary" onclick="showLogin()">I have an account</button>
     </div>
+  </div>
+  <div class="how-it-works">
+    <h2>How it works</h2>
+    <div class="steps-row">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Describe or Record</h3>
+        <p>Type what you want automated in plain English, or record your screen to let AI detect patterns.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>AI Builds the Workflow</h3>
+        <p>Our pipeline parses, analyzes, plans, and serializes your request into a structured workflow.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Deploy to n8n</h3>
+        <p>One click to push the workflow to your n8n instance. Fully configured and ready to run.</p>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;">
     <div class="features">
       <div class="feature-card">
-        <div class="feature-icon">&#9997;</div>
-        <h3>Describe in Plain English</h3>
-        <p>Write what you want automated the way you'd explain it to a coworker. Our AI handles the rest.</p>
+        <div class="feature-icon purple">&#9997;</div>
+        <h3>Natural Language Input</h3>
+        <p>Write what you want automated the way you'd explain it to a coworker. No syntax, no drag-and-drop.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#128065;</div>
+        <div class="feature-icon teal">&#128065;</div>
         <h3>Smart Screen Recording</h3>
-        <p>Record your screen activity and let AI detect repetitive patterns it can turn into workflows.</p>
+        <p>Record your screen activity and let AI detect repetitive patterns it can turn into workflows for you.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">&#9889;</div>
-        <h3>One-Click n8n Deploy</h3>
+        <div class="feature-icon orange">&#9889;</div>
+        <h3>One-Click Deploy</h3>
         <p>Generated workflows deploy directly to your n8n instance. From idea to running automation in seconds.</p>
       </div>
     </div>
   </div>
-  <div class="landing-footer">LastautAI &mdash; Natural Language to Workflow Automation</div>
+  <div class="landing-footer">LastautAI &mdash; Built with Claude AI</div>
 </div>
 
 <!-- ==================== AUTH: LOGIN ==================== -->
@@ -507,8 +614,9 @@
 <!-- ==================== APP ==================== -->
 <div id="appScreen" style="display:none;">
   <div class="header">
-    <h1>LastautAI</h1>
+    <h1 onclick="switchTab('create')">LastautAI</h1>
     <div class="header-right">
+      <span class="header-greeting" id="headerGreeting"></span>
       <span class="header-user" id="headerUser"></span>
       <button class="btn-logout" onclick="doLogout()">Log out</button>
     </div>
@@ -662,6 +770,9 @@
     currentUser = user;
     hideAll();
     document.getElementById('appScreen').style.display = 'block';
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('headerGreeting').textContent = greeting + ',';
     document.getElementById('headerUser').textContent = user.username;
   }
 
@@ -741,11 +852,14 @@
           <div class="history-item-info">
             <div class="history-item-name">${esc(w.name)}</div>
             <div class="history-item-desc">${esc(w.description)}</div>
-            <div class="history-item-meta">${new Date(w.created_at).toLocaleString()}${w.n8n_id ? '<span class="n8n-badge">n8n: ' + esc(w.n8n_id) + '</span>' : ''}</div>
+            <div class="history-item-meta">
+              ${new Date(w.created_at).toLocaleString()}
+              ${w.n8n_id ? '<span class="n8n-badge">Deployed to n8n (#' + esc(w.n8n_id) + ')</span>' : '<span style="color:var(--text-dim)">Local only</span>'}
+            </div>
           </div>
           <div class="history-item-actions">
             <button class="btn-sm" onclick="event.stopPropagation(); viewWorkflow(${w.id})">View</button>
-            <button class="btn-delete" onclick="event.stopPropagation(); deleteWorkflow(${w.id})" style="margin-left:0.5rem">Delete</button>
+            <button class="btn-delete" onclick="event.stopPropagation(); deleteWorkflow(${w.id})">Delete${w.n8n_id ? ' (+ n8n)' : ''}</button>
           </div>
         </div>
       `).join('') + '</div>';
@@ -1078,7 +1192,13 @@
   }
 
   async function deleteWorkflow(id) {
-    await fetch(API + '/workflows/history/' + id, { method: 'DELETE', headers: headers() });
+    const n8nUrl = document.getElementById('n8nUrl').value.trim().replace(/\/+$/, '');
+    const apiKey = document.getElementById('n8nApiKey').value.trim();
+    let url = API + '/workflows/history/' + id;
+    if (n8nUrl && apiKey) {
+      url += '?n8n_url=' + encodeURIComponent(n8nUrl) + '&n8n_api_key=' + encodeURIComponent(apiKey);
+    }
+    await fetch(url, { method: 'DELETE', headers: headers() });
     loadHistory();
   }
 
