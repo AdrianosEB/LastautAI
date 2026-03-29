@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from src.api.routes.auth import get_current_user
+from src.auth.dependencies import get_current_user
 from src.db.models import User
 from src.utils.ai_client import get_client
 
@@ -91,6 +91,18 @@ TOOLS = [
                 "message": {"type": "string", "description": "The final result message"},
             },
             "required": ["message"],
+        },
+    },
+    {
+        "name": "check_condition",
+        "description": "Evaluate a condition to decide whether to proceed with a step. Use this for conditional branching — e.g. 'if the data contains errors' or 'if the value exceeds threshold'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "condition": {"type": "string", "description": "The condition to evaluate in plain language"},
+                "data": {"type": "string", "description": "The data or context to evaluate the condition against"},
+            },
+            "required": ["condition", "data"],
         },
     },
 ]
@@ -177,6 +189,24 @@ def _execute_tool(name: str, inputs: dict) -> dict:
     elif name == "log_result":
         return {"logged": True, "message": inputs.get("message", "")}
 
+    elif name == "check_condition":
+        condition = inputs.get("condition", "")
+        data = inputs.get("data", "")
+        try:
+            resp = get_client().messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=100,
+                messages=[{"role": "user", "content": (
+                    f"Evaluate this condition and return ONLY 'true' or 'false'.\n\n"
+                    f"Condition: {condition}\n\nData: {data}"
+                )}],
+            )
+            answer = next((b.text for b in resp.content if b.type == "text"), "true").strip().lower()
+            result = answer.startswith("true")
+            return {"condition": condition, "result": result, "reason": answer}
+        except Exception as e:
+            return {"condition": condition, "result": True, "error": str(e)}
+
     return {"error": f"Unknown tool: {name}"}
 
 
@@ -202,9 +232,10 @@ def execute_ai(
             "2. Call the appropriate tool\n"
             "3. After getting the result, briefly state what happened\n"
             "4. Move to the next step\n\n"
-            "IMPORTANT: Each tool call receives the result from the previous step. "
-            "Use data from earlier steps to feed into later steps. For example, if step 1 "
-            "fetches data, use that data in step 2's transform or message.\n\n"
+            "IMPORTANT: Chain step outputs — use data from earlier steps in later steps. "
+            "For example, if step 1 fetches data, pass that data to step 2's transform.\n\n"
+            "For conditional workflows, use check_condition to evaluate whether to proceed "
+            "with a branch. Skip steps when the condition is not met.\n\n"
             "Execute all steps in logical order. Use real URLs and data when available. "
             "When you're done with all steps, summarize what was accomplished.\n"
             "Be concise — one sentence per explanation, then call the tool."

@@ -118,7 +118,7 @@ The system can observe what users actually do on their computer and automaticall
 3. Every 60 seconds, the event buffer is flushed and sent to Claude (Haiku) for pattern analysis
 4. Claude returns a plain-language description of any detected workflow patterns
 5. Patterns appear as suggestion cards on the dashboard
-6. Users approve a suggestion to send it through the NL-to-workflow pipeline, or dismiss it
+6. Users click "Generate Workflow" on a suggestion to send it through the NL-to-workflow pipeline, or dismiss it
 
 ### Privacy
 - Only app names, window titles, and click coordinates are captured

@@ -89,10 +89,11 @@ Claude executes workflows live using tool use. Available tools:
 | Tool | Status | Details |
 |------|--------|---------|
 | `fetch_url` | Real | Makes actual HTTP requests to any URL |
-| `send_slack_message` | Real | Posts to Slack via webhook (requires `SLACK_WEBHOOK_URL`) |
-| `transform_data` | Real | Uses Claude to process/transform data |
+| `send_slack_message` | Real | Posts to Slack via webhook (requires `SLACK_WEBHOOK_URL`). Simulated if env var not set |
+| `transform_data` | Real | Uses Claude to process/transform data per instruction |
+| `check_condition` | Real | Evaluates conditions via Claude for branching logic |
 | `send_email` | Simulated | Logs email details locally. Connect SendGrid/SES for production |
-| `create_document` | Real | Generates document content |
+| `create_document` | Real | Generates document content with title and body |
 | `log_result` | Real | Logs final workflow output |
 
 ### n8n Integration
@@ -126,17 +127,14 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 ```
 ├── src/
 │   ├── api/
-│   │   ├── server.py          # FastAPI app setup
+│   │   ├── server.py          # FastAPI app setup, CORS, error handling
 │   │   ├── routes/
+│   │   │   ├── workflows.py   # generate, generate-steps, validate, run (consolidated)
+│   │   │   ├── execute_ai.py  # Claude AI execution with tool use and conditional branching
 │   │   │   ├── auth.py        # Authentication (signup/login/me)
 │   │   │   ├── capture.py     # Screen recording & suggestions
-│   │   │   ├── execute_ai.py  # Claude AI execution with tool use
-│   │   │   ├── generate.py    # Workflow generation
-│   │   │   ├── generate_steps.py  # Step-by-step generation
 │   │   │   ├── history.py     # Workflow CRUD
-│   │   │   ├── n8n.py         # n8n deployment
-│   │   │   ├── run.py         # Generate + execute
-│   │   │   └── validate.py    # Schema validation
+│   │   │   └── n8n.py         # n8n deployment
 │   │   └── models/
 │   │       └── requests.py    # Pydantic request models
 │   ├── auth/                  # JWT & password hashing
