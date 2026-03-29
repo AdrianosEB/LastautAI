@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from . import recorder as rec
 from .models import WorkflowSuggestion
+from .analyzer import analyze_frame
 
 
 @login_required
@@ -14,23 +14,40 @@ def monitor(request):
     ).order_by('-created_at')[:20]
 
     return render(request, 'capture/monitor.html', {
-        'suggestions':   suggestions,
-        'is_recording':  rec.is_running(request.user.id),
+        'suggestions': suggestions,
     })
 
 
 @login_required
 @require_POST
-def start_recording(request):
-    started = rec.start(request.user.id)
-    return JsonResponse({'status': 'started' if started else 'already_running'})
+def receive_frame(request):
+    data   = json.loads(request.body)
+    image  = data.get('image', '')
+    clicks = data.get('clicks', [])
+
+    if not image:
+        return JsonResponse({'status': 'skipped'})
+
+    description = analyze_frame(image, clicks)
+    print(f'[Analyzer] response: {description}')
+
+    return JsonResponse({'status': 'ok', 'description': description})
 
 
 @login_required
 @require_POST
-def stop_recording(request):
-    stopped = rec.stop(request.user.id)
-    return JsonResponse({'status': 'stopped' if stopped else 'not_running'})
+def save_suggestion(request):
+    data = json.loads(request.body)
+    description = data.get('description', '').strip()
+    if not description:
+        return JsonResponse({'error': 'No description provided.'}, status=400)
+    suggestion = WorkflowSuggestion.objects.create(
+        user=request.user,
+        description=description,
+        raw_events=data.get('raw_events', ''),
+        status='approved',
+    )
+    return JsonResponse({'id': suggestion.id})
 
 
 @login_required

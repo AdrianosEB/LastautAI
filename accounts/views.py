@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib import messages
 
 
@@ -9,17 +9,21 @@ def login_view(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+        email    = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+        try:
+            username = User.objects.get(email=email).username
+        except User.DoesNotExist:
+            username = None
+
+        user = authenticate(request, username=username, password=password) if username else None
+        if user:
             login(request, user)
             return redirect('home')
         else:
-            messages.error(request, 'Invalid username or password.')
-    else:
-        form = AuthenticationForm()
+            messages.error(request, 'Invalid email or password.')
 
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'accounts/login.html')
 
 
 def logout_view(request):
@@ -32,17 +36,22 @@ def signup_view(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        email     = request.POST.get('email', '').strip().lower()
+        password1 = request.POST.get('password1', '')
+        password2 = request.POST.get('password2', '')
+
+        if not email or not password1:
+            messages.error(request, 'Email and password are required.')
+        elif password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'An account with that email already exists.')
+        else:
+            user = User.objects.create_user(username=email, email=email, password=password1)
             login(request, user)
             return redirect('home')
-        else:
-            messages.error(request, 'Please fix the errors below.')
-    else:
-        form = UserCreationForm()
 
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'accounts/signup.html')
 
 
 def home_view(request):

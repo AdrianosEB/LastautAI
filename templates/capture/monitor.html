@@ -9,18 +9,14 @@
     <!-- Control panel -->
     <section class="panel control-panel">
         <h2>Recording</h2>
-        <p class="note">Monitors app switching and clicks on your machine. Analyzes patterns every 5 minutes.</p>
+        <p class="note">Shares your screen to detect workflow patterns. Analyzes a screenshot every 10 seconds.</p>
 
         <div class="status-row">
-            <span class="status-dot {% if is_recording %}active{% endif %}" id="status-dot"></span>
-            <span id="status-label">{% if is_recording %}Recording...{% else %}Idle{% endif %}</span>
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-label">Idle</span>
         </div>
 
-        <button id="toggle-btn" class="{% if is_recording %}btn-stop{% endif %}">
-            {% if is_recording %}Stop Recording{% else %}Start Recording{% endif %}
-        </button>
-
-        <p class="warn">⚠ Run Django locally (<code>python manage.py runserver</code>) for screen capture to work.</p>
+        <button id="toggle-btn">Start Recording</button>
     </section>
 
     <!-- Suggestions panel -->
@@ -54,19 +50,97 @@
 {% block extra_js %}
 <script>
     const CSRF = '{{ csrf_token }}';
-    let isRecording = {{ is_recording|yesno:"true,false" }};
+    let isRecording   = false;
+    let mediaStream   = null;
+    let captureTimer  = null;
+    let pendingClicks = [];
 
-    const toggleBtn = document.getElementById('toggle-btn');
-    const statusDot = document.getElementById('status-dot');
+    const toggleBtn  = document.getElementById('toggle-btn');
+    const statusDot  = document.getElementById('status-dot');
     const statusLabel = document.getElementById('status-label');
 
     toggleBtn.addEventListener('click', async () => {
-        const url = isRecording ? "{% url 'stop_recording' %}" : "{% url 'start_recording' %}";
-        const resp = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
-        const data = await resp.json();
-        isRecording = data.status === 'started' || data.status === 'already_running';
-        updateUI();
+        if (isRecording) {
+            stopRecording();
+        } else {
+            await startRecording();
+        }
     });
+
+    async function startRecording() {
+        try {
+            mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        } catch (e) {
+            // User cancelled the screen picker
+            return;
+        }
+
+        // If user clicks "Stop sharing" in the browser bar, clean up
+        mediaStream.getTracks()[0].addEventListener('ended', stopRecording);
+
+        document.addEventListener('click', onClickCapture);
+        captureTimer = setInterval(captureAndSend, 5 * 60 * 1000);
+        isRecording = true;
+        updateUI();
+    }
+
+    function stopRecording() {
+        clearInterval(captureTimer);
+        document.removeEventListener('click', onClickCapture);
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(t => t.stop());
+            mediaStream = null;
+        }
+        isRecording = false;
+        updateUI();
+    }
+
+    function onClickCapture(e) {
+        pendingClicks.push({ x: e.clientX, y: e.clientY, timestamp: Date.now() });
+    }
+
+    async function captureAndSend() {
+        if (!mediaStream) return;
+
+        const track = mediaStream.getVideoTracks()[0];
+        if (!track) return;
+
+        // Draw current frame to canvas
+        const video = document.createElement('video');
+        video.srcObject = mediaStream;
+        await video.play();
+
+        const canvas = document.createElement('canvas');
+        // Scale down to 50% to keep payload small
+        canvas.width  = Math.floor(video.videoWidth  / 2);
+        canvas.height = Math.floor(video.videoHeight / 2);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        video.pause();
+
+        // Strip the data URI prefix to get raw base64
+        const dataUrl = canvas.toDataURL('image/png');
+        const image   = dataUrl.replace('data:image/png;base64,', '');
+
+        // Snapshot and clear pending clicks
+        const clicks = pendingClicks.splice(0);
+
+        try {
+            const resp = await fetch("{% url 'receive_frame' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF,
+                },
+                body: JSON.stringify({ image, clicks }),
+            });
+            const data = await resp.json();
+            if (data.description) {
+                showLiveCard(data.description, JSON.stringify(clicks));
+            }
+        } catch (e) {
+            console.error('[Capture] failed to send frame:', e);
+        }
+    }
 
     function updateUI() {
         if (isRecording) {
@@ -79,6 +153,49 @@
             toggleBtn.classList.remove('btn-stop');
             statusDot.classList.remove('active');
             statusLabel.textContent = 'Idle';
+        }
+    }
+
+    let liveCardCounter = 0;
+
+    function showLiveCard(description, rawEvents) {
+        const list = document.getElementById('suggestions-list');
+        const emptyMsg = document.getElementById('empty-msg');
+        if (emptyMsg) emptyMsg.remove();
+
+        const id = 'live-' + (liveCardCounter++);
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        card.id = id;
+        card.innerHTML = `
+            <p class="suggestion-text">${description}</p>
+            <div class="suggestion-meta">
+                <span class="badge badge-pending">Live</span>
+                <span class="suggestion-time">Just now</span>
+            </div>
+            <div class="suggestion-actions">
+                <button class="btn-approve" onclick="approveLiveCard('${id}', this)">Save & Approve</button>
+                <button class="btn-dismiss" onclick="document.getElementById('${id}').remove()">Dismiss</button>
+            </div>`;
+        card.dataset.description = description;
+        card.dataset.rawEvents   = rawEvents;
+        list.prepend(card);
+    }
+
+    async function approveLiveCard(cardId, btn) {
+        const card = document.getElementById(cardId);
+        const resp = await fetch("{% url 'save_suggestion' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({
+                description: card.dataset.description,
+                raw_events:  card.dataset.rawEvents,
+            }),
+        });
+        if (resp.ok) {
+            card.querySelector('.badge').textContent = 'Approved';
+            card.querySelector('.badge').className = 'badge badge-approved';
+            card.querySelector('.suggestion-actions').remove();
         }
     }
 
@@ -97,6 +214,7 @@
         }
     }
 
+    // Poll for new suggestions every 30 seconds
     setInterval(async () => {
         const resp = await fetch("{% url 'get_suggestions' %}");
         const data = await resp.json();

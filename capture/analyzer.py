@@ -4,37 +4,47 @@ import anthropic
 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 
-def analyze_events(events: list) -> str:
-    """Send a batch of captured events to Claude and return a workflow description."""
-    if not events:
+def analyze_frame(image_b64: str, clicks: list) -> str:
+    """Analyze a screenshot + click list and return a workflow description."""
+    if not image_b64:
         return ''
 
-    log_lines = '\n'.join(
-        f"{e['timestamp']} [{e['event_type']}] {e['app_name']}"
-        + (f" — {e['window_title']}" if e['window_title'] else '')
-        + (f" ({e['detail']})" if e['detail'] else '')
-        for e in events
+    click_summary = ''
+    if clicks:
+        click_summary = f'\n\nThe user made {len(clicks)} clicks during this period at these coordinates:\n'
+        click_summary += '\n'.join(f"  - x={c.get('x')}, y={c.get('y')}" for c in clicks[:20])
+
+    prompt = (
+        "This is a screenshot of the user's screen taken during a recording session."
+        " Look at what applications are open, what content is visible, and what the user appears to be doing."
+        + click_summary
+        + "\n\nIf you can identify a clear repeated workflow or pattern that could be automated, "
+        "describe it in 2-3 plain sentences covering what the user is doing and whether it looks automatable. "
+        "If there is not enough information to identify a pattern, respond only with: "
+        "'Not enough data to identify patterns yet.' "
+        "Keep the response concise and non-technical. Do not use bullet points."
     )
-
-    prompt = f"""The following is a log of a user's recent computer activity captured over the past few minutes.
-
-{log_lines}
-
-Analyze this activity and identify any repeated sequences, patterns, or workflows.
-If you detect a clear pattern, describe it in 2-3 plain sentences covering:
-- What the user is doing
-- How often the pattern appears
-- Whether it looks like something that could be automated
-
-If there are no clear patterns yet, respond only with:
-"Not enough data to identify patterns yet."
-
-Keep the response concise and non-technical. Do not use bullet points."""
 
     response = client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=500,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_b64,
+                    },
+                },
+                {
+                    "type": "text",
+                    "text": prompt,
+                },
+            ],
+        }],
     )
 
     return next((b.text for b in response.content if b.type == "text"), '')
