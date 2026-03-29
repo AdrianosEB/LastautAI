@@ -189,6 +189,14 @@ Tasks are grouped by phase (matching spec.md milestones) and ordered by dependen
 - [x] **P10-3**: Track n8n deployment status per workflow (n8n_id in database)
 - [x] **P10-4**: Support n8n workflow deletion when deleting from history
 
+### Phase 11 — Scheduled Execution
+
+- [x] **P11-1**: Create `src/scheduler.py` — in-memory cron scheduler with threading
+- [x] **P11-2**: Cron parser supporting standard expressions and simple intervals
+- [x] **P11-3**: `POST /workflows/{id}/schedule` — start recurring execution
+- [x] **P11-4**: `DELETE /workflows/{id}/schedule` — stop a schedule
+- [x] **P11-5**: `GET /workflows/schedules` — list active schedules with status
+
 ### Not Implemented (Out of Scope)
 
 These features are documented as stretch goals but are not built:
@@ -196,5 +204,4 @@ These features are documented as stretch goals but are not built:
 - [ ] YAML output tab in UI (backend supports YAML, UI only shows JSON and n8n format)
 - [ ] Make (Integromat) format conversion
 - [ ] Real email delivery via SMTP/SendGrid/SES (currently simulated with logging)
-- [ ] Scheduled/cron workflow execution (workflows are on-demand only)
 - [ ] Automated test suite (unit, integration, golden tests)

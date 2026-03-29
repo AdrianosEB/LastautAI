@@ -96,6 +96,9 @@ Claude executes workflows live using tool use. Available tools:
 | `create_document` | Real | Generates document content with title and body |
 | `log_result` | Real | Logs final workflow output |
 
+### Scheduled Execution
+Workflows with cron triggers can be scheduled via `POST /workflows/{id}/schedule`. The scheduler parses cron expressions (e.g. `0 9 * * 1-5` for weekdays at 9am) and simple intervals (`every 5m`), then runs the workflow on a recurring background thread using the AI execution engine. List active schedules with `GET /workflows/schedules`.
+
 ### Webhook Triggers
 Saved workflows can be triggered externally via `POST /workflows/{id}/trigger`. Any system (n8n, Zapier, cron, curl) can send a JSON payload that gets injected as context into the AI execution engine. This enables event-driven automation without manual intervention.
 
@@ -118,6 +121,9 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 | GET | `/workflows/history/{id}` | Get workflow details |
 | DELETE | `/workflows/history/{id}` | Delete workflow |
 | POST | `/workflows/{id}/trigger` | Webhook trigger — execute a saved workflow with payload (no auth) |
+| POST | `/workflows/{id}/schedule` | Start recurring execution from workflow's cron trigger |
+| DELETE | `/workflows/{id}/schedule` | Stop a scheduled workflow |
+| GET | `/workflows/schedules` | List all active schedules |
 | POST | `/n8n/deploy` | Deploy to n8n instance |
 | POST | `/capture/start` | Start screen recording |
 | POST | `/capture/stop` | Stop screen recording |
@@ -151,6 +157,7 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 │   ├── executor/
 │   │   ├── engine.py          # Step-by-step workflow executor with condition evaluation
 │   │   └── actions.py         # Tool implementations (HTTP, email, etc.)
+│   ├── scheduler.py             # In-memory cron scheduler (recurring workflow execution)
 │   ├── utils/
 │   │   ├── ai_client.py       # Shared Anthropic client singleton
 │   │   └── parsing.py         # LLM response parsing (markdown fence stripping, JSON extraction)

@@ -94,6 +94,55 @@ async def delete_workflow(
     return {"deleted": True, "n8n_deleted": n8n_deleted}
 
 
+@router.post("/workflows/{workflow_id}/schedule")
+def schedule_workflow_route(
+    workflow_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Schedule a saved workflow to run on a recurring interval.
+
+    Reads the trigger.config.cron field from the workflow definition.
+    Also accepts ?cron= query param to override. Supports standard cron
+    expressions and simple intervals like 'every 5m'.
+    """
+    from src.scheduler import schedule_workflow
+
+    w = db.query(Workflow).filter(Workflow.id == workflow_id, Workflow.user_id == user.id).first()
+    if not w:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    workflow_data = w.get_workflow()
+    cron_expr = workflow_data.get("trigger", {}).get("config", {}).get("cron", "")
+    if not cron_expr:
+        raise HTTPException(status_code=400, detail="Workflow has no cron schedule in trigger config")
+
+    result = schedule_workflow(w.id, user.id, w.description, workflow_data, cron_expr)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.delete("/workflows/{workflow_id}/schedule")
+def unschedule_workflow_route(
+    workflow_id: int,
+    user: User = Depends(get_current_user),
+):
+    """Stop a scheduled workflow."""
+    from src.scheduler import unschedule_workflow
+    removed = unschedule_workflow(workflow_id)
+    if not removed:
+        raise HTTPException(status_code=404, detail="No active schedule for this workflow")
+    return {"unscheduled": True}
+
+
+@router.get("/workflows/schedules")
+def list_schedules(user: User = Depends(get_current_user)):
+    """List all active workflow schedules for the current user."""
+    from src.scheduler import get_schedules
+    return {"schedules": get_schedules()}
+
+
 @router.post("/workflows/{workflow_id}/trigger")
 async def trigger_workflow(
     workflow_id: int,

@@ -574,7 +574,20 @@ Saved workflows can be executed via external HTTP POST to `POST /workflows/{id}/
 - Payload is injected into Claude's context so it can use the triggering data
 - History endpoint includes `has_webhook` flag for workflows with webhook/event triggers
 
-### 13.7 UI
+### 13.7 Scheduled Execution
+
+Workflows with cron triggers can be scheduled for recurring execution via the scheduler module (`src/scheduler.py`).
+
+**Endpoints:**
+- `POST /workflows/{id}/schedule` — start recurring execution using the workflow's cron config
+- `DELETE /workflows/{id}/schedule` — stop a schedule
+- `GET /workflows/schedules` — list active schedules with run counts and last-run timestamps
+
+**Cron parsing:** Supports standard 5-field cron expressions (`*/5 * * * *`, `0 9 * * 1-5`) and simple intervals (`every 5m`, `every 1h`). Minimum interval: 10 seconds.
+
+**Architecture:** Background threads with `threading.Timer` loops. Each scheduled workflow runs in its own daemon thread, consuming `run_workflow_stream()` to execute via Claude's tool-use agent. In-memory storage (reset on server restart); production path would use Redis + Celery.
+
+### 13.8 UI
 
 A full-screen overlay displays the execution feed with animated step cards, showing each tool call, its inputs, and results in real time.
 
