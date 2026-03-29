@@ -1,6 +1,7 @@
 __pycache__/
-*/__pycache__
+**/__pycache__/
 *.pyc
+*.pyo
 .env
 .env.*
 !.env.example
@@ -20,6 +21,7 @@ output.txt
 
 # OS files
 .DS_Store
+**/.DS_Store
 
 # IDE
 .vscode/
@@ -27,6 +29,13 @@ output.txt
 
 # Node
 node_modules/
+
 # macOS duplicate files
 *\ 2.*
 *\ 2/
+
+# Django artifacts (legacy — project uses FastAPI)
+accounts/
+aut_app/
+templates/
+manage.py
