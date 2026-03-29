@@ -12,6 +12,9 @@ from src.api.routes.validate import router as validate_router
 from src.api.routes.run import router as run_router
 from src.api.routes.generate_steps import router as generate_steps_router
 from src.api.routes.n8n import router as n8n_router
+from src.api.routes.auth import router as auth_router
+from src.api.routes.history import router as history_router
+from src.db.database import init_db
 
 app = FastAPI(
     title="LastautAI",
@@ -31,6 +34,10 @@ app.include_router(validate_router)
 app.include_router(run_router)
 app.include_router(generate_steps_router)
 app.include_router(n8n_router)
+app.include_router(auth_router)
+app.include_router(history_router)
+
+init_db()
 
 UI_PATH = Path(__file__).parent.parent.parent / "ui" / "index.html"
 

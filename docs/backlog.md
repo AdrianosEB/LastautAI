@@ -43,6 +43,15 @@ workflow-automation/
 │   │   ├── dag.py                          # DAG data structure: nodes, edges, conditional edges
 │   │   └── topological.py                  # Topological sort for serialization ordering
 │   │
+│   ├── db/
+│   │   ├── database.py                     # SQLAlchemy engine, session factory, init_db()
+│   │   └── models.py                       # User and Workflow ORM models
+│   │
+│   ├── auth/
+│   │   ├── hashing.py                      # bcrypt password hashing/verification
+│   │   ├── jwt.py                          # JWT token creation and validation
+│   │   └── dependencies.py                 # FastAPI dependency: get_current_user from token
+│   │
 │   └── prompts/
 │       ├── system_prompt.txt               # System prompt for LLM-based parsing (Claude API)
 │       ├── extraction_prompt.txt           # Prompt template for intent/entity/action extraction
@@ -81,8 +90,11 @@ workflow-automation/
 │   └── golden/
 │       └── test_golden.py                  # Runs all examples/inputs through pipeline, diffs against examples/outputs
 │
+├── data/
+│   └── lastautai.db                        # SQLite database (gitignored, created at runtime)
+│
 ├── ui/
-│   └── index.html                          # Single-page web UI — workflow input, pipeline viz, n8n export
+│   └── index.html                          # Single-page web UI — login, dashboard, workflow create, n8n export
 │
 ├── pyproject.toml                          # Project metadata, dependencies, scripts
 ├── .env.example                            # Template for environment variables (API keys, config)
@@ -167,3 +179,24 @@ Tasks are grouped by phase (matching spec.md milestones) and ordered by dependen
 - [ ] **P6-7**: Add YAML output tab alongside JSON and n8n formats
 - [ ] **P6-8**: Add Make (Integromat) format conversion alongside n8n
 - [x] **P6-9**: Update `docs/vision.md`, `docs/spec.md`, and `docs/backlog.md` to document the web UI
+
+### Phase 7 — User Accounts, Database, and Dashboard
+
+- [ ] **P7-1**: Add `sqlalchemy`, `passlib[bcrypt]`, `python-jose[cryptography]` to `pyproject.toml`
+- [ ] **P7-2**: Create `src/db/database.py` — SQLAlchemy engine pointing at `data/lastautai.db`, session factory, `init_db()` that creates tables on startup
+- [ ] **P7-3**: Create `src/db/models.py` — `User` model (id, username, email, password_hash, created_at) and `Workflow` model (id, user_id FK, name, description, workflow_json, n8n_id, created_at)
+- [ ] **P7-4**: Create `src/auth/hashing.py` — bcrypt hash and verify functions via passlib
+- [ ] **P7-5**: Create `src/auth/jwt.py` — create_token(user_id) and decode_token(token) using python-jose, signing with `AUTH_SECRET` env var, 24h expiry
+- [ ] **P7-6**: Create `src/auth/dependencies.py` — FastAPI `Depends` function `get_current_user` that extracts and validates the JWT from the Authorization header
+- [ ] **P7-7**: Create `POST /auth/signup` route — validate input, hash password, insert user, return JWT
+- [ ] **P7-8**: Create `POST /auth/login` route — verify credentials, return JWT
+- [ ] **P7-9**: Create `GET /auth/me` route — return current user info (requires auth)
+- [ ] **P7-10**: Create `GET /workflows/history` route — return list of user's saved workflows (requires auth)
+- [ ] **P7-11**: Create `GET /workflows/{id}` route — return a specific saved workflow (requires auth, must belong to user)
+- [ ] **P7-12**: Update `POST /workflows/generate-steps` to save the generated workflow to the database when a user is authenticated
+- [ ] **P7-13**: Update `POST /n8n/deploy` to record the n8n workflow ID on the saved workflow record
+- [ ] **P7-14**: Update UI — add login/signup screens, persist JWT in localStorage, send Authorization header on API calls
+- [ ] **P7-15**: Update UI — add dashboard layout with tabs: Record (placeholder), Suggested Workflows (placeholder), Create Workflow (existing), My Workflows (history list)
+- [ ] **P7-16**: Update UI — My Workflows tab shows list of past workflows with name, date, re-export and re-deploy actions
+- [ ] **P7-17**: Add `data/` to `.gitignore` so the SQLite database is never committed
+- [x] **P7-18**: Update `docs/vision.md`, `docs/spec.md`, and `docs/backlog.md` to document user accounts and dashboard

@@ -9,6 +9,9 @@ build/
 .pytest_cache/
 db.sqlite3
 
+# Database
+data/
+
 # Logs and temp files
 *.log
 server.log
@@ -23,3 +26,6 @@ output.txt
 
 # Node
 node_modules/
+# macOS duplicate files
+*\ 2.*
+*\ 2/
