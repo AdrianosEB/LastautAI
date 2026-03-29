@@ -96,6 +96,9 @@ Claude executes workflows live using tool use. Available tools:
 | `create_document` | Real | Generates document content with title and body |
 | `log_result` | Real | Logs final workflow output |
 
+### Webhook Triggers
+Saved workflows can be triggered externally via `POST /workflows/{id}/trigger`. Any system (n8n, Zapier, cron, curl) can send a JSON payload that gets injected as context into the AI execution engine. This enables event-driven automation without manual intervention.
+
 ### n8n Integration
 Deploy generated workflows directly to any n8n instance via its REST API. Workflows are converted to n8n node format with proper connections and triggers.
 
@@ -114,6 +117,7 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 | GET | `/workflows/history` | List saved workflows |
 | GET | `/workflows/history/{id}` | Get workflow details |
 | DELETE | `/workflows/history/{id}` | Delete workflow |
+| POST | `/workflows/{id}/trigger` | Webhook trigger — execute a saved workflow with payload (no auth) |
 | POST | `/n8n/deploy` | Deploy to n8n instance |
 | POST | `/capture/start` | Start screen recording |
 | POST | `/capture/stop` | Stop screen recording |

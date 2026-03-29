@@ -210,6 +210,94 @@ def _execute_tool(name: str, inputs: dict) -> dict:
     return {"error": f"Unknown tool: {name}"}
 
 
+def run_workflow_stream(description: str, workflow: dict | None = None, extra_context: str = ""):
+    """Core SSE execution loop — reused by /execute-ai and /workflows/{id}/trigger.
+
+    Yields SSE events as Claude executes the workflow step by step using tool use.
+    Supports inter-step output chaining and conditional branching via check_condition.
+    """
+    workflow_context = ""
+    if workflow:
+        workflow_context = f"\n\nWorkflow definition:\n{json.dumps(workflow, indent=2)}"
+    if extra_context:
+        workflow_context += f"\n\n{extra_context}"
+
+    system_prompt = (
+        "You are a workflow execution engine. Your job is to execute the described workflow "
+        "step by step using the tools provided. For each step:\n"
+        "1. Briefly state what you're about to do\n"
+        "2. Call the appropriate tool\n"
+        "3. After getting the result, briefly state what happened\n"
+        "4. Move to the next step\n\n"
+        "IMPORTANT: Chain step outputs — use data from earlier steps in later steps. "
+        "For example, if step 1 fetches data, pass that data to step 2's transform.\n\n"
+        "For conditional workflows, use check_condition to evaluate whether to proceed "
+        "with a branch. Skip steps when the condition is not met.\n\n"
+        "Execute all steps in logical order. Use real URLs and data when available. "
+        "When you're done with all steps, summarize what was accomplished.\n"
+        "Be concise — one sentence per explanation, then call the tool."
+    )
+
+    step_outputs = []
+    messages = [{"role": "user", "content": f"Execute this workflow:\n\n{description}{workflow_context}"}]
+    client = get_client()
+
+    for _ in range(15):
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=4096,
+                system=system_prompt,
+                tools=TOOLS,
+                messages=messages,
+            )
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            break
+
+        assistant_content = []
+        tool_results = []
+
+        for block in response.content:
+            if block.type == "text" and block.text.strip():
+                yield f"data: {json.dumps({'type': 'thinking', 'text': block.text.strip()})}\n\n"
+                assistant_content.append({"type": "text", "text": block.text})
+            elif block.type == "tool_use":
+                assistant_content.append({
+                    "type": "tool_use", "id": block.id,
+                    "name": block.name, "input": block.input,
+                })
+
+                step_num = len(step_outputs) + 1
+                yield f"data: {json.dumps({'type': 'step_start', 'tool': block.name, 'input': block.input, 'step': step_num})}\n\n"
+
+                result = _execute_tool(block.name, block.input)
+                step_outputs.append({"step": step_num, "tool": block.name, "result": result})
+
+                yield f"data: {json.dumps({'type': 'step_complete', 'tool': block.name, 'result': result, 'step': step_num})}\n\n"
+
+                chain_note = ""
+                if len(step_outputs) > 1:
+                    prev = step_outputs[-2]
+                    chain_note = f"\n\n[Previous step {prev['step']} ({prev['tool']}) returned: {json.dumps(prev['result'])[:500]}]"
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(result) + chain_note,
+                })
+
+        messages.append({"role": "assistant", "content": assistant_content})
+        if tool_results:
+            messages.append({"role": "user", "content": tool_results})
+
+        if response.stop_reason == "end_turn":
+            yield f"data: {json.dumps({'type': 'complete'})}\n\n"
+            break
+    else:
+        yield f"data: {json.dumps({'type': 'complete', 'message': 'Max steps reached'})}\n\n"
+
+
 class ExecuteAIRequest(BaseModel):
     description: str
     workflow: dict | None = None
@@ -220,102 +308,13 @@ def execute_ai(
     req: ExecuteAIRequest,
     user: User = Depends(get_current_user),
 ):
-    def event_stream():
-        workflow_context = ""
-        if req.workflow:
-            workflow_context = f"\n\nHere is the structured workflow definition for reference:\n{json.dumps(req.workflow, indent=2)}"
+    """Execute a workflow description using Claude's tool-use capability.
 
-        system_prompt = (
-            "You are a workflow execution engine. Your job is to execute the described workflow "
-            "step by step using the tools provided. For each step:\n"
-            "1. Briefly state what you're about to do\n"
-            "2. Call the appropriate tool\n"
-            "3. After getting the result, briefly state what happened\n"
-            "4. Move to the next step\n\n"
-            "IMPORTANT: Chain step outputs — use data from earlier steps in later steps. "
-            "For example, if step 1 fetches data, pass that data to step 2's transform.\n\n"
-            "For conditional workflows, use check_condition to evaluate whether to proceed "
-            "with a branch. Skip steps when the condition is not met.\n\n"
-            "Execute all steps in logical order. Use real URLs and data when available. "
-            "When you're done with all steps, summarize what was accomplished.\n"
-            "Be concise — one sentence per explanation, then call the tool."
-        )
-
-        # Track step results for inter-step chaining
-        step_outputs = []
-
-        user_msg = f"Execute this workflow:\n\n{req.description}{workflow_context}"
-
-        messages = [{"role": "user", "content": user_msg}]
-
-        max_iterations = 15
-        client = get_client()
-
-        for _ in range(max_iterations):
-            try:
-                response = client.messages.create(
-                    model="claude-haiku-4-5",
-                    max_tokens=4096,
-                    system=system_prompt,
-                    tools=TOOLS,
-                    messages=messages,
-                )
-            except Exception as e:
-                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-                break
-
-            # Build the full assistant content first
-            assistant_content = []
-            tool_results = []
-
-            for block in response.content:
-                if block.type == "text" and block.text.strip():
-                    yield f"data: {json.dumps({'type': 'thinking', 'text': block.text.strip()})}\n\n"
-                    assistant_content.append({"type": "text", "text": block.text})
-                elif block.type == "tool_use":
-                    assistant_content.append({
-                        "type": "tool_use",
-                        "id": block.id,
-                        "name": block.name,
-                        "input": block.input,
-                    })
-
-                    step_num = len(step_outputs) + 1
-                    yield f"data: {json.dumps({'type': 'step_start', 'tool': block.name, 'input': block.input, 'step': step_num})}\n\n"
-
-                    result = _execute_tool(block.name, block.input)
-
-                    # Track for inter-step chaining
-                    step_outputs.append({"step": step_num, "tool": block.name, "result": result})
-
-                    yield f"data: {json.dumps({'type': 'step_complete', 'tool': block.name, 'result': result, 'step': step_num})}\n\n"
-
-                    # Include chain context so Claude knows previous step results
-                    chain_note = ""
-                    if len(step_outputs) > 1:
-                        prev = step_outputs[-2]
-                        chain_note = f"\n\n[Previous step {prev['step']} ({prev['tool']}) returned: {json.dumps(prev['result'])[:500]}]"
-
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": json.dumps(result) + chain_note,
-                    })
-
-            # Add assistant message + all tool results as one exchange
-            messages.append({"role": "assistant", "content": assistant_content})
-            if tool_results:
-                messages.append({"role": "user", "content": tool_results})
-
-            if response.stop_reason == "end_turn":
-                yield f"data: {json.dumps({'type': 'complete'})}\n\n"
-                break
-
-        else:
-            yield f"data: {json.dumps({'type': 'complete', 'message': 'Max steps reached'})}\n\n"
-
+    Returns an SSE stream of execution events (thinking, step_start,
+    step_complete, error, complete) as Claude processes each step.
+    """
     return StreamingResponse(
-        event_stream(),
+        run_workflow_stream(req.description, req.workflow),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
