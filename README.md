@@ -74,7 +74,7 @@ Open [http://localhost:8000](http://localhost:8000) in your browser.
 ## Features
 
 ### Screen Recording & AI Analysis
-Record your desktop activity. The recorder captures mouse clicks and app switches, then Claude analyzes the patterns to suggest automatable workflows. Suggestions appear in the **Suggested** tab.
+Record your desktop activity. The recorder uses `pynput` for mouse click events and macOS `osascript` for active app/window detection. Events are flushed every 60 seconds to Claude Haiku for pattern analysis, which identifies repeatable tasks and suggests automations. Suggestions appear in the **Suggested** tab.
 
 ### 4-Stage Workflow Generation Pipeline
 Natural language descriptions are processed through:
@@ -143,7 +143,7 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 │   │       └── requests.py    # Pydantic request models
 │   ├── auth/                  # JWT & password hashing
 │   ├── capture/
-│   │   ├── recorder.py        # Screen activity recorder (pynput)
+│   │   ├── recorder.py        # Screen activity recorder (pynput + osascript)
 │   │   └── analyzer.py        # Claude-powered event analysis
 │   ├── db/
 │   │   ├── database.py        # SQLAlchemy setup
