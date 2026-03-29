@@ -14,6 +14,7 @@ from src.api.routes.generate_steps import router as generate_steps_router
 from src.api.routes.n8n import router as n8n_router
 from src.api.routes.auth import router as auth_router
 from src.api.routes.history import router as history_router
+from src.api.routes.capture import router as capture_router
 from src.db.database import init_db
 
 app = FastAPI(
@@ -36,6 +37,7 @@ app.include_router(generate_steps_router)
 app.include_router(n8n_router)
 app.include_router(auth_router)
 app.include_router(history_router)
+app.include_router(capture_router)
 
 init_db()
 

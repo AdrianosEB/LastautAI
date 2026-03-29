@@ -41,3 +41,13 @@ def get_workflow(workflow_id: int, user: User = Depends(get_current_user), db: S
         "n8n_id": w.n8n_id,
         "created_at": w.created_at.isoformat() if w.created_at else None,
     }
+
+
+@router.delete("/workflows/history/{workflow_id}")
+def delete_workflow(workflow_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    w = db.query(Workflow).filter(Workflow.id == workflow_id, Workflow.user_id == user.id).first()
+    if not w:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    db.delete(w)
+    db.commit()
+    return {"deleted": True}

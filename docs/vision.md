@@ -93,11 +93,36 @@ The system supports individual user accounts so that each person's workflows are
 - Workflow history includes the original natural language description, the generated JSON, and any n8n deployment IDs
 
 ### Dashboard Experience
-The authenticated user lands on a dashboard with three sections:
+The authenticated user lands on a dashboard with four sections:
 
-1. **Record** — (future) Record actions to auto-generate workflows from observed behavior
-2. **Suggested Workflows** — (future) AI-suggested workflows based on usage patterns
-3. **Create Workflow** — The existing type-in + generate + deploy flow
+1. **Record** — Start/stop background screen recording. The system captures mouse clicks and app switches, sends batches to Claude for pattern analysis, and surfaces detected workflow patterns as suggestions
+2. **Suggested Workflows** — AI-detected patterns from recording sessions. Users can approve a suggestion (which sends it to the Create Workflow pipeline) or dismiss it
+3. **Create Workflow** — Type a workflow description in plain English, see the pipeline stages, and deploy to n8n
+4. **My Workflows** — History of all generated workflows with re-export and re-deploy
+
+## Screen Recording and Pattern Detection
+
+The system can observe what users actually do on their computer and automatically identify repeatable patterns worth automating.
+
+### How It Works
+1. User clicks "Start Recording" on the dashboard
+2. A background thread captures events: mouse clicks (with app context — URLs for browsers, file paths for Finder) and application switches
+3. Every 60 seconds, the event buffer is flushed and sent to Claude (Haiku) for pattern analysis
+4. Claude returns a plain-language description of any detected workflow patterns
+5. Patterns appear as suggestion cards on the dashboard
+6. Users approve a suggestion to send it through the NL-to-workflow pipeline, or dismiss it
+
+### Privacy
+- Only app names, window titles, and click coordinates are captured
+- Passwords and message content are never recorded
+- Recording is opt-in — the user must explicitly start it
+- All data is scoped to the individual user
+
+### Architecture
+- **Event capture**: `pynput` for mouse events, `osascript` (macOS) for active app detection
+- **Analysis**: Claude Haiku for fast, cheap pattern recognition
+- **Storage**: EventLog (raw events) and WorkflowSuggestion (Claude's analysis) in SQLite
+- **Handoff**: Approved suggestions feed directly into the NL-to-workflow pipeline
 
 ## Success Criteria
 

@@ -367,10 +367,167 @@ The UI transitions from a single-page tool to an authenticated dashboard:
 | Login / Signup        | Phase 7    | Gate access to the app                               |
 | Create Workflow       | Existing   | The current type-in + generate + deploy flow         |
 | My Workflows          | Phase 7    | List of previously generated workflows per user      |
-| Record                | Placeholder | Future: record actions to auto-generate workflows   |
-| Suggested Workflows   | Placeholder | Future: AI-suggested workflows based on patterns    |
+| Record                | Phase 8    | Start/stop screen recording, view detected patterns  |
+| Suggested Workflows   | Phase 8    | Approve/dismiss AI-detected patterns                 |
 
-## 11. Milestones
+## 11. Screen Recording and Pattern Detection
+
+### 11.1 Overview
+
+The Record feature captures user desktop activity (mouse clicks, app switches) via a background thread and periodically sends event batches to Claude for pattern analysis. Detected patterns are surfaced as workflow suggestions that can be approved and sent through the NL-to-workflow pipeline.
+
+This integrates the `LastautAI-screen-capture` project's recording backend into the FastAPI server.
+
+### 11.2 Recording Architecture
+
+```
+User clicks "Start Recording"
+        |
+FastAPI starts ScreenRecorder thread (per-user, daemon)
+        |
+Continuous loop:
+  - pynput.mouse.Listener captures clicks (with app context)
+  - osascript polls for app switches every 1 second
+  - Events buffered in memory
+        |
+Every 60 seconds:
+  - Buffer flushed
+  - Events saved to event_logs table
+  - Events sent to Claude Haiku for analysis
+  - If pattern found → saved to workflow_suggestions table
+        |
+Frontend polls GET /capture/suggestions every 30 seconds
+        |
+User sees suggestion cards → Approve or Dismiss
+        |
+Approved → description sent to Create Workflow pipeline
+```
+
+### 11.3 Database Tables (additions)
+
+#### `event_logs` table
+
+| Column        | Type         | Constraints              |
+|---------------|--------------|--------------------------|
+| `id`          | INTEGER      | PRIMARY KEY              |
+| `user_id`     | INTEGER      | FOREIGN KEY → users.id   |
+| `timestamp`   | DATETIME     | DEFAULT now              |
+| `event_type`  | VARCHAR(50)  | NOT NULL (`click`, `app_switch`) |
+| `app_name`    | VARCHAR(200) | NOT NULL                 |
+| `window_title`| VARCHAR(500) | nullable                 |
+| `detail`      | VARCHAR(500) | nullable (URL, file path, coords) |
+
+#### `workflow_suggestions` table
+
+| Column        | Type         | Constraints              |
+|---------------|--------------|--------------------------|
+| `id`          | INTEGER      | PRIMARY KEY              |
+| `user_id`     | INTEGER      | FOREIGN KEY → users.id   |
+| `created_at`  | DATETIME     | DEFAULT now              |
+| `description` | TEXT         | NOT NULL (Claude's analysis) |
+| `raw_events`  | TEXT         | NOT NULL (event log text) |
+| `status`      | VARCHAR(20)  | DEFAULT `pending` (`pending`, `approved`, `dismissed`) |
+
+### 11.4 Recording API Endpoints
+
+| Endpoint                          | Auth | Description                                      |
+|-----------------------------------|------|--------------------------------------------------|
+| `POST /capture/start`             | Yes  | Start recording for current user                 |
+| `POST /capture/stop`              | Yes  | Stop recording for current user                  |
+| `GET /capture/status`             | Yes  | Return `{recording: true/false}`                 |
+| `GET /capture/suggestions`        | Yes  | List pending suggestions for current user        |
+| `POST /capture/suggestions/{id}`  | Yes  | Update suggestion status (approve/dismiss)       |
+
+### 11.5 Event Capture Details
+
+| App | What's captured | How |
+|-----|-----------------|-----|
+| Chrome/Chromium | Active tab URL | AppleScript |
+| Safari | Current tab URL | AppleScript |
+| Firefox | Window title | AppleScript |
+| Finder | Folder path (POSIX) | AppleScript |
+| Other apps | Click coordinates | pynput |
+
+**Privacy:** Only app names, window titles, and coordinates. No passwords, no message content, no keystrokes.
+
+### 11.6 Pattern Analysis
+
+Events are formatted into a readable log and sent to Claude Haiku with a prompt that asks for:
+- What the user is doing
+- How often the pattern repeats
+- Whether it could be automated
+
+If no clear pattern is found, Claude responds with "Not enough data" and no suggestion is created.
+
+### 11.7 Suggestion → Workflow Handoff
+
+When a user approves a suggestion, its `description` text is used as the input to `POST /workflows/generate-steps`, feeding it through the existing Parser → Analyzer → Planner → Serializer pipeline. The generated workflow is saved to the user's account and can be deployed to n8n.
+
+## 12. Testing Plan
+
+### 12.1 Philosophy
+
+Tests call functions directly with simulated inputs — no sleeping, no UI clicking, no waiting for timers. Each test targets one layer.
+
+### 12.2 Test Matrix
+
+| Test | Layer | What it checks | Requires API? |
+|------|-------|----------------|---------------|
+| 1 — Buffer | Recorder | Events land in buffer correctly | No |
+| 2 — Analyzer | Claude API | Pattern analysis returns description | Yes (Haiku) |
+| 3 — Flush | DB write | Events + suggestions saved to DB | Yes (Haiku) |
+| 4 — Endpoints | API routes | Start/stop/suggestions return correct JSON | No (mock recorder) |
+| 5 — End-to-end | Full pipeline | Inject events → flush → suggestion appears via API | Yes (Haiku) |
+| 6 — Handoff | Suggestion → Generate | Approved suggestion feeds into NL pipeline | Yes (Sonnet) |
+
+### 12.3 Test 1: Event Buffer
+
+```python
+from src.capture.recorder import ScreenRecorder
+
+r = ScreenRecorder(user_id=1)
+r._log('app_switch', 'Chrome', window_title='Gmail')
+r._log('click', 'Chrome', detail='x=100 y=200')
+r._log('app_switch', 'Finder', window_title='Downloads')
+
+assert len(r.buffer) == 3
+assert r.buffer[0]['event_type'] == 'app_switch'
+assert r.buffer[1]['app_name'] == 'Chrome'
+```
+
+### 12.4 Test 2: Analyzer
+
+```python
+from src.capture.analyzer import analyze_events
+
+fake_events = [
+    {'timestamp': '09:01:00', 'event_type': 'app_switch', 'app_name': 'Chrome',
+     'window_title': 'Gmail', 'detail': ''},
+    {'timestamp': '09:01:10', 'event_type': 'click', 'app_name': 'Chrome',
+     'window_title': '', 'detail': 'x=500 y=300'},
+    {'timestamp': '09:01:20', 'event_type': 'app_switch', 'app_name': 'Finder',
+     'window_title': 'Downloads', 'detail': ''},
+]
+
+result = analyze_events(fake_events)
+assert isinstance(result, str)
+assert len(result) > 0
+```
+
+### 12.5 Test 3: API Endpoints
+
+```python
+# POST /capture/start → {"status": "started"}
+# POST /capture/stop  → {"status": "stopped"}
+# GET /capture/suggestions → {"suggestions": [...]}
+# POST /capture/suggestions/1 → {"status": "approved"}
+```
+
+### 12.6 Test 4: End-to-End
+
+Inject fake events into a recorder, call flush, verify suggestion appears via the API, approve it, and verify it generates a workflow.
+
+## 13. Milestones
 
 | Phase | Deliverable                                                        |
 |-------|--------------------------------------------------------------------|
@@ -381,3 +538,4 @@ The UI transitions from a single-page tool to an authenticated dashboard:
 | 5     | Validation endpoint, golden test suite, and documentation          |
 | 6     | Web UI with step-by-step visualization and n8n export              |
 | 7     | User accounts, database, workflow history, and dashboard           |
+| 8     | Screen recording, pattern detection, suggestions, and handoff      |
