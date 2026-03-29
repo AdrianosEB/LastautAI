@@ -1,6 +1,5 @@
 import logging
 
-import anthropic
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -9,11 +8,10 @@ from src.auth.dependencies import get_current_user
 from src.capture import recorder
 from src.db.database import get_db
 from src.db.models import User, WorkflowSuggestion
+from src.utils.ai_client import get_client
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/capture")
-
-_ai = anthropic.Anthropic()
 
 
 class SuggestionUpdate(BaseModel):
@@ -22,7 +20,7 @@ class SuggestionUpdate(BaseModel):
 
 def _refine_suggestion(description: str) -> tuple[str, str]:
     """Use AI to create a short summary and a clean workflow prompt from a raw suggestion."""
-    resp = _ai.messages.create(
+    resp = get_client().messages.create(
         model="claude-haiku-4-5",
         max_tokens=600,
         messages=[{"role": "user", "content": f"""You are converting a screen-activity analysis into a practical n8n workflow automation prompt.
@@ -63,19 +61,31 @@ Now generate for the activity above. Return ONLY the title, then "---", then the
 
 @router.post("/start")
 def start_recording(user: User = Depends(get_current_user)):
-    started = recorder.start(user.id)
-    return {"status": "started" if started else "already_running"}
+    try:
+        started = recorder.start(user.id)
+        return {"status": "started" if started else "already_running"}
+    except Exception as e:
+        logger.error("Failed to start recording: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to start recording")
 
 
 @router.post("/stop")
 def stop_recording(user: User = Depends(get_current_user)):
-    stopped = recorder.stop(user.id)
-    return {"status": "stopped" if stopped else "not_running"}
+    try:
+        stopped = recorder.stop(user.id)
+        return {"status": "stopped" if stopped else "not_running"}
+    except Exception as e:
+        logger.error("Failed to stop recording: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to stop recording")
 
 
 @router.get("/status")
 def recording_status(user: User = Depends(get_current_user)):
-    return {"recording": recorder.is_running(user.id)}
+    try:
+        return {"recording": recorder.is_running(user.id)}
+    except Exception as e:
+        logger.error("Failed to check recording status: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to check recording status")
 
 
 @router.get("/suggestions")

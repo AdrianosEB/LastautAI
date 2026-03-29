@@ -7,8 +7,10 @@ import logging
 import os
 from typing import Any, Callable
 
-import anthropic
 import httpx
+
+from src.utils.ai_client import get_client
+from src.utils.parsing import parse_json_response
 
 logger = logging.getLogger(__name__)
 
@@ -158,24 +160,13 @@ def execute_generic(action: str, description: str, inputs: dict, context: dict) 
 
 def _ask_claude(prompt: str) -> dict:
     """Call Claude to process/simulate a step."""
-    client = anthropic.Anthropic()
-    response = client.messages.create(
+    response = get_client().messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=2048,
         messages=[{"role": "user", "content": prompt}],
     )
     raw = response.content[0].text.strip()
-
-    # Strip markdown fences
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[1] if "\n" in raw else raw[3:]
-        if raw.endswith("```"):
-            raw = raw[:-3]
-
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        return {"result": raw}
+    return parse_json_response(raw)
 
 
 # Registry of action executors
