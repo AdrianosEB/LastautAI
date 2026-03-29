@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LastautAI - Natural Language to Workflow</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #24243a;
+      --border: #2e2e4a;
+      --text: #e4e4ef;
+      --text-dim: #8888a0;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --success: #00cec9;
+      --warning: #fdcb6e;
+      --error: #ff6b6b;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- LANDING PAGE ---- */
+    .landing { min-height: 100vh; display: flex; flex-direction: column; }
+    .landing-nav {
+      padding: 1.25rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(15, 15, 19, 0.8);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .landing-logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-light), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+    .landing-nav-btns { display: flex; gap: 0.75rem; }
+    .btn-nav {
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+    .btn-nav:hover { border-color: var(--accent); color: var(--text); }
+    .btn-nav.primary {
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      border: none;
+      color: white;
+    }
+    .btn-nav.primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); transform: translateY(-1px); }
+
+    .landing-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,92,231,0.12) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      color: var(--accent-light);
+      margin-bottom: 2rem;
+    }
+    .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      max-width: 750px;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent-light) 60%, var(--success) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+    .hero-cta { display: flex; gap: 1rem; margin-bottom: 5rem; }
+    .btn-hero {
+      padding: 0.9rem 2.25rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s;
+    }
+    .btn-hero.primary {
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      color: white;
+      box-shadow: 0 4px 20px rgba(108, 92, 231, 0.25);
+    }
+    .btn-hero.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108, 92, 231, 0.45); }
+    .btn-hero.secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn-hero.secondary:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
+
+    /* How it works */
+    .how-it-works {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+    }
+    .how-it-works h2 {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 2rem;
+    }
+    .steps-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .step {
+      flex: 1;
+      text-align: center;
+      padding: 1.25rem 1rem;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-light);
+      margin-bottom: 0.75rem;
+    }
+    .step h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .step p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
+    .step-arrow {
+      display: flex;
+      align-items: center;
+      padding-top: 2rem;
+      color: var(--border);
+      font-size: 1.2rem;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      max-width: 900px;
+      width: 100%;
+      padding: 0 2rem;
+      margin-bottom: 4rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      text-align: left;
+      transition: all 0.25s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .feature-icon.purple { background: rgba(108,92,231,0.15); }
+    .feature-icon.teal { background: rgba(0,206,201,0.15); }
+    .feature-icon.orange { background: rgba(255,109,90,0.15); }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .feature-card p { font-size: 0.83rem; color: var(--text-dim); line-height: 1.6; }
+
+    .landing-footer {
+      padding: 2rem 3rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    /* ---- AUTH SCREENS ---- */
+    .auth-screen {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(108,92,231,0.08) 0%, transparent 70%);
+    }
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .auth-card h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, var(--accent-light), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .auth-card .sub { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem; }
+    .auth-card label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.25rem; margin-top: 0.75rem; }
+    .auth-card input {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .auth-card input:focus { border-color: var(--accent); }
+    .auth-error { color: var(--error); font-size: 0.8rem; margin-top: 0.5rem; display: none; }
+    .auth-card .btn-primary {
+      margin-top: 1.25rem;
+      width: 100%;
+      padding: 0.7rem;
+      background: linear-gradient(135deg, var(--accent), #7c5ce7);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .auth-card .btn-primary:hover { box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+    .auth-card .switch { text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--text-dim); }
+    .auth-card .switch a { color: var(--accent-light); cursor: pointer; text-decoration: none; }
+    .auth-back { display: block; text-align: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-dim); cursor: pointer; text-decoration: none; }
+    .auth-back:hover { color: var(--text); }
+
+    /* ---- HEADER ---- */
+    .header {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-light), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      cursor: pointer;
+      letter-spacing: -0.02em;
+    }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .header-user { font-size: 0.85rem; color: var(--text-dim); }
+    .header-greeting { font-size: 0.85rem; color: var(--text); font-weight: 500; }
+    .btn-logout {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .btn-logout:hover { border-color: var(--error); color: var(--error); }
+
+    /* ---- TABS ---- */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      gap: 0;
+    }
+    .tab {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .tab:hover { color: var(--text); background: rgba(108,92,231,0.04); }
+    .tab.active { color: var(--accent-light); border-bottom-color: var(--accent); background: rgba(108,92,231,0.06); }
+
+    /* ---- TAB CONTENT ---- */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ---- CREATE WORKFLOW ---- */
+    .create-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      height: calc(100vh - 110px);
+    }
+    .input-panel {
+      padding: 2rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .input-panel h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+    .input-panel p.hint { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem; line-height: 1.5; }
+    textarea {
+      flex: 1; min-height: 160px; max-height: 250px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-family: inherit; font-size: 0.95rem; padding: 1rem;
+      resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.6;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+    .controls { display: flex; gap: 0.75rem; margin-top: 1rem; align-items: center; }
+    .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #7c5ce7); color: white; flex: 1; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+    .examples { margin-top: 1.5rem; }
+    .examples h3 { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+    .example-chip {
+      display: inline-block; padding: 0.4rem 0.8rem; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem;
+      color: var(--text-dim); cursor: pointer; margin: 0.25rem; transition: all 0.2s;
+    }
+    .example-chip:hover { border-color: var(--accent); color: var(--text); }
+
+    /* n8n settings */
+    .n8n-settings { margin-top: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .n8n-settings h3 { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+    .n8n-settings label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.25rem; margin-top: 0.5rem; }
+    .n8n-settings label:first-of-type { margin-top: 0; }
+    .n8n-settings input {
+      width: 100%; padding: 0.5rem 0.7rem; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; outline: none;
+    }
+    .n8n-settings input:focus { border-color: var(--accent); }
+    .n8n-status { margin-top: 0.75rem; font-size: 0.8rem; padding: 0.5rem 0.7rem; border-radius: 6px; display: none; }
+    .n8n-status.success { display: block; background: rgba(0,206,201,0.1); border: 1px solid var(--success); color: var(--success); }
+    .n8n-status.error { display: block; background: rgba(255,107,107,0.1); border: 1px solid var(--error); color: var(--error); }
+    .btn-n8n {
+      margin-top: 0.75rem; width: 100%; padding: 0.6rem;
+      background: linear-gradient(135deg, #ff6d5a, #ea4c46); color: white; border: none;
+      border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-n8n:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(234,76,70,0.4); }
+    .btn-n8n:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Output panel */
+    .output-panel { padding: 2rem; display: flex; flex-direction: column; overflow-y: auto; }
+    .output-panel h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+    .pipeline { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .stage { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.3s; }
+    .stage.active { border-color: var(--accent); }
+    .stage.done { border-color: var(--success); }
+    .stage.error { border-color: var(--error); }
+    .stage-header { padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .stage-header:hover { background: var(--surface2); }
+    .stage-left { display: flex; align-items: center; gap: 0.6rem; }
+    .stage-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; background: var(--surface2); color: var(--text-dim); flex-shrink: 0; }
+    .stage.active .stage-icon { background: var(--accent); color: white; }
+    .stage.done .stage-icon { background: var(--success); color: var(--bg); }
+    .stage.error .stage-icon { background: var(--error); color: white; }
+    .stage-name { font-size: 0.9rem; font-weight: 600; }
+    .stage-meta { font-size: 0.75rem; color: var(--text-dim); }
+    .stage-body { display: none; padding: 0 1rem 0.75rem; border-top: 1px solid var(--border); }
+    .stage-body.open { display: block; }
+    .stage-body pre { background: var(--bg); border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; font-size: 0.78rem; line-height: 1.5; overflow-x: auto; color: var(--accent-light); max-height: 200px; overflow-y: auto; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .workflow-output { flex: 1; display: flex; flex-direction: column; }
+    .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .output-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--success); }
+    .output-actions { display: flex; gap: 0.5rem; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+    .btn-sm:hover { border-color: var(--accent); color: var(--text); }
+    .btn-sm.copied { border-color: var(--success); color: var(--success); }
+    .output-code { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.6; overflow: auto; white-space: pre-wrap; color: var(--text); min-height: 200px; }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); text-align: center; gap: 0.75rem; }
+    .empty-state .icon { font-size: 2.5rem; opacity: 0.3; }
+    .empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.5; }
+    .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem; text-align: center; }
+    .summary-card .label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; }
+    .summary-card .value { font-size: 1.1rem; font-weight: 700; margin-top: 0.2rem; color: var(--accent-light); }
+    .format-tabs { display: flex; gap: 0; margin-bottom: 0.75rem; }
+    .format-tab { padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+    .format-tab:first-child { border-radius: 6px 0 0 6px; }
+    .format-tab:last-child { border-radius: 0 6px 6px 0; }
+    .format-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* ---- MY WORKFLOWS ---- */
+    .history-panel { padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .history-panel h2 { font-size: 1rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .history-empty { text-align: center; color: var(--text-dim); padding: 3rem; font-size: 0.9rem; }
+    .history-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .history-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    .history-item:hover { border-color: var(--accent); }
+    .history-item-info { flex: 1; }
+    .history-item-name { font-size: 0.95rem; font-weight: 600; }
+    .history-item-desc { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; }
+    .history-item-meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.3rem; }
+    .history-item-meta .n8n-badge {
+      display: inline-block; margin-left: 0.5rem; padding: 0.15rem 0.5rem; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+      background: rgba(0,206,201,0.15); color: var(--success); border: 1px solid rgba(0,206,201,0.3);
+    }
+    .history-item-meta .local-badge {
+      display: inline-block; margin-left: 0.5rem; padding: 0.15rem 0.5rem; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+      background: rgba(108,92,231,0.15); color: var(--accent-light); border: 1px solid rgba(108,92,231,0.3);
+    }
+    .history-item-actions { display: flex; gap: 0.5rem; }
+
+    /* ---- RECORD TAB ---- */
+    .record-panel { padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .record-panel h2 { font-size: 1rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .record-control { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .record-status { display: flex; align-items: center; gap: 0.5rem; }
+    .record-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--text-dim); }
+    .record-dot.active { background: var(--error); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .record-label { font-size: 0.9rem; font-weight: 600; }
+    .record-timer { font-size: 0.85rem; color: var(--accent-light); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+    .btn-record { padding: 0.6rem 1.5rem; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .btn-record.start { background: var(--accent); color: white; }
+    .btn-record.stop { background: var(--error); color: white; }
+    .suggestion-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.5rem; }
+    .suggestion-desc { font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.75rem; }
+    .suggestion-meta { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .suggestion-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .suggestion-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+    .suggestion-badge.pending { background: rgba(253,203,110,0.15); color: var(--warning); }
+    .suggestion-badge.approved { background: rgba(0,206,201,0.15); color: var(--success); }
+    .suggestion-badge.dismissed { background: rgba(136,136,160,0.15); color: var(--text-dim); }
+    .btn-approve { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--success); background: rgba(0,206,201,0.1); color: var(--success); cursor: pointer; }
+    .btn-approve:hover { background: rgba(0,206,201,0.2); }
+    .btn-dismiss { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; }
+    .btn-dismiss:hover { border-color: var(--text-dim); }
+    .btn-send-create { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--accent); background: rgba(108,92,231,0.1); color: var(--accent-light); cursor: pointer; }
+    .btn-send-create:hover { background: rgba(108,92,231,0.2); }
+    .btn-delete { padding: 0.35rem 0.75rem; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--error); background: rgba(255,107,107,0.1); color: var(--error); cursor: pointer; }
+    .btn-delete:hover { background: rgba(255,107,107,0.2); }
+
+    /* ---- AI EXECUTION OVERLAY ---- */
+    .btn-ai-run {
+      width: 100%; padding: 0.75rem; border-radius: var(--radius); font-weight: 700; font-size: 0.95rem;
+      border: none; cursor: pointer; margin-top: 0.75rem;
+      background: linear-gradient(135deg, #6c5ce7, #a855f7); color: #fff;
+      transition: opacity 0.2s;
+    }
+    .btn-ai-run:hover:not(:disabled) { opacity: 0.85; }
+    .btn-ai-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ai-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .ai-overlay-content {
+      width: 90%; max-width: 700px; max-height: 85vh;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(108,92,231,0.3);
+    }
+    .ai-overlay-header {
+      padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-overlay-header h2 { margin: 0; font-size: 1.2rem; color: var(--accent-light); }
+    .ai-overlay-close {
+      background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .ai-overlay-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .ai-overlay-desc {
+      padding: 0.75rem 1.5rem; font-size: 0.85rem; color: var(--text-dim);
+      border-bottom: 1px solid var(--border); background: rgba(108,92,231,0.05);
+    }
+    .ai-feed-items {
+      flex: 1; overflow-y: auto; padding: 1rem 1.5rem; min-height: 200px;
+    }
+    .ai-feed-item {
+      padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 10px;
+      font-size: 0.9rem; line-height: 1.6; display: flex; flex-direction: column; gap: 0.3rem;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .ai-feed-item.thinking {
+      color: var(--text-dim); font-style: italic; background: rgba(255,255,255,0.03);
+      padding: 0.6rem 1rem; font-size: 0.85rem;
+    }
+    .ai-feed-item.running {
+      background: rgba(108,92,231,0.12); border-left: 4px solid var(--accent);
+    }
+    .ai-feed-item.done {
+      background: rgba(0,206,201,0.08); border-left: 4px solid var(--success);
+    }
+    .ai-feed-item.error {
+      background: rgba(255,107,107,0.1); border-left: 4px solid var(--error); color: var(--error);
+    }
+    .ai-feed-item.final {
+      font-weight: 700; font-size: 1rem; color: var(--success); text-align: center;
+      border: none; background: rgba(0,206,201,0.12); padding: 1rem;
+      margin-top: 0.5rem; border-radius: 10px;
+    }
+    .ai-feed-item.loading {
+      color: var(--accent-light); text-align: center; padding: 1.5rem;
+      font-size: 1rem;
+    }
+    .ai-feed-item.loading .loading-dots::after {
+      content: ''; animation: dots 1.5s steps(3) infinite;
+    }
+    @keyframes dots {
+      0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; }
+    }
+    .step-tool { font-weight: 700; font-size: 0.95rem; color: var(--accent-light); }
+    .step-input { color: var(--text-dim); font-size: 0.8rem; word-break: break-all; }
+    .step-result { color: var(--success); font-size: 0.8rem; margin-top: 0.3rem; font-weight: 600; }
+    .step-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      margin-right: 0.5rem; flex-shrink: 0; vertical-align: middle;
+    }
+    .ai-feed-item.running .step-dot { background: var(--accent); animation: pulse 1s infinite; }
+    .ai-feed-item.done .step-dot { background: var(--success); }
+
+    /* ---- RECORDING ITEM ---- */
+    .recording-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.25rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .recording-item-info { flex: 1; }
+    .recording-item-title { font-size: 0.9rem; font-weight: 600; }
+    .recording-item-meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 900px) {
+      .create-layout { grid-template-columns: 1fr; height: auto; }
+      .input-panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .output-panel { min-height: 60vh; }
+      .features { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2.2rem; }
+      .landing-nav { padding: 1rem 1.5rem; }
+      .steps-row { flex-direction: column; align-items: center; }
+      .step-arrow { transform: rotate(90deg); padding: 0; }
+      .hero-cta { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== LANDING PAGE ==================== -->
+<div id="landingScreen" class="landing">
+  <nav class="landing-nav">
+    <div class="landing-logo">LastautAI</div>
+    <div class="landing-nav-btns">
+      <button class="btn-nav" onclick="showLogin()">Log In</button>
+      <button class="btn-nav primary" onclick="showSignup()">Get Started</button>
+    </div>
+  </nav>
+  <div class="landing-hero">
+    <span class="hero-badge">Powered by Claude AI</span>
+    <h1 class="hero-title">Turn plain English into automated workflows</h1>
+    <p class="hero-subtitle">
+      Describe what you want automated in natural language. LastautAI builds the workflow, connects to n8n, and deploys it &mdash; no code required.
+    </p>
+    <div class="hero-cta">
+      <button class="btn-hero primary" onclick="showSignup()">Get Started Free</button>
+      <button class="btn-hero secondary" onclick="showLogin()">I have an account</button>
+    </div>
+  </div>
+  <div class="how-it-works">
+    <h2>How it works</h2>
+    <div class="steps-row">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Describe or Record</h3>
+        <p>Type what you want automated in plain English, or record your screen to let AI detect patterns.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>AI Builds the Workflow</h3>
+        <p>Our pipeline parses, analyzes, plans, and serializes your request into a structured workflow.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Deploy to n8n</h3>
+        <p>One click to push the workflow to your n8n instance. Fully configured and ready to run.</p>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;">
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon purple">&#9997;</div>
+        <h3>Natural Language Input</h3>
+        <p>Write what you want automated the way you'd explain it to a coworker. No syntax, no drag-and-drop.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon teal">&#128065;</div>
+        <h3>Smart Screen Recording</h3>
+        <p>Record your screen activity and let AI detect repetitive patterns it can turn into workflows for you.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">&#9889;</div>
+        <h3>One-Click Deploy</h3>
+        <p>Generated workflows deploy directly to your n8n instance. From idea to running automation in seconds.</p>
+      </div>
+    </div>
+  </div>
+  <div class="landing-footer">LastautAI &mdash; Built with Claude AI</div>
+</div>
+
+<!-- ==================== AUTH: LOGIN ==================== -->
+<div id="loginScreen" class="auth-screen">
+  <div class="auth-card">
+    <h1>LastautAI</h1>
+    <p class="sub">Welcome back</p>
+    <label>Username</label>
+    <input type="text" id="loginUser" placeholder="Username">
+    <label>Password</label>
+    <input type="password" id="loginPass" placeholder="Password">
+    <div class="auth-error" id="loginError"></div>
+    <button class="btn-primary" onclick="doLogin()">Log In</button>
+    <p class="switch">Don't have an account? <a onclick="showSignup()">Sign up</a></p>
+    <a class="auth-back" onclick="showLanding()">Back to home</a>
+  </div>
+</div>
+
+<!-- ==================== AUTH: SIGNUP ==================== -->
+<div id="signupScreen" class="auth-screen">
+  <div class="auth-card">
+    <h1>Create Account</h1>
+    <p class="sub">Start automating in plain English</p>
+    <label>Username</label>
+    <input type="text" id="signupUser" placeholder="Username">
+    <label>Email</label>
+    <input type="email" id="signupEmail" placeholder="you@example.com">
+    <label>Password</label>
+    <input type="password" id="signupPass" placeholder="Min 6 characters">
+    <div class="auth-error" id="signupError"></div>
+    <button class="btn-primary" onclick="doSignup()">Sign Up</button>
+    <p class="switch">Already have an account? <a onclick="showLogin()">Log in</a></p>
+    <a class="auth-back" onclick="showLanding()">Back to home</a>
+  </div>
+</div>
+
+<!-- ==================== APP ==================== -->
+<div id="appScreen" style="display:none;">
+  <div class="header">
+    <h1 onclick="switchTab('create')">LastautAI</h1>
+    <div class="header-right">
+      <span class="header-greeting" id="headerGreeting"></span>
+      <span class="header-user" id="headerUser"></span>
+      <button class="btn-logout" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab" data-tab="record" onclick="switchTab('record', this)">Record</div>
+    <div class="tab" data-tab="suggested" onclick="switchTab('suggested', this)">Suggested</div>
+    <div class="tab active" data-tab="create" onclick="switchTab('create', this)">Create Workflow</div>
+    <div class="tab" data-tab="history" onclick="switchTab('history', this)">My Workflows</div>
+  </div>
+
+  <!-- ---- TAB: CREATE WORKFLOW ---- -->
+  <div class="tab-content active" id="tab-create">
+    <div class="create-layout">
+      <div class="input-panel">
+        <h2>Describe Your Workflow</h2>
+        <p class="hint">Write what you want automated in plain English. The AI will break it down into steps, identify triggers, and produce a structured workflow you can export to n8n.</p>
+        <textarea id="description" placeholder="Every Monday morning, pull the latest sales data from our CRM, summarize it, and email the report to the team..."></textarea>
+        <div class="controls">
+          <button class="btn btn-primary" id="generateBtn" onclick="generate()">Generate Workflow</button>
+          <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+        </div>
+        <div class="examples">
+          <h3>Try an example</h3>
+          <span class="example-chip" onclick="useExample(this)">Every Monday, pull sales data from CRM, summarize it, and email the report to the team</span>
+          <span class="example-chip" onclick="useExample(this)">When CPU usage exceeds 90%, restart the service and notify the oncall engineer</span>
+          <span class="example-chip" onclick="useExample(this)">Fetch error logs daily, filter critical ones, summarize them, and post to Slack</span>
+          <span class="example-chip" onclick="useExample(this)">When a new order comes in via webhook, validate the payment, update inventory, and send confirmation email</span>
+          <span class="example-chip" onclick="useExample(this)">Every day at 6am, pull data from the data warehouse, transform it, and load into the reporting database</span>
+        </div>
+        <div class="n8n-settings">
+          <h3>n8n Connection</h3>
+          <label for="n8nUrl">n8n Instance URL</label>
+          <input type="text" id="n8nUrl" placeholder="http://localhost:5678">
+          <label for="n8nApiKey">API Key</label>
+          <input type="password" id="n8nApiKey" placeholder="n8n API key (Settings > API)">
+          <button class="btn-n8n" id="deployBtn" onclick="deployToN8n()" disabled>Deploy to n8n</button>
+          <div class="n8n-status" id="n8nStatus"></div>
+        </div>
+        <button class="btn-ai-run" id="runAiBtn" onclick="runWithAI()" disabled>Run with AI</button>
+      </div>
+      <div class="output-panel">
+        <h2>Pipeline Output</h2>
+        <div class="pipeline" id="pipeline">
+          <div class="stage" id="stage-parser"><div class="stage-header" onclick="toggleStage('parser')"><div class="stage-left"><div class="stage-icon">1</div><span class="stage-name">Parser</span></div><span class="stage-meta" id="meta-parser">Extracts actions, entities, triggers</span></div><div class="stage-body" id="body-parser"></div></div>
+          <div class="stage" id="stage-analyzer"><div class="stage-header" onclick="toggleStage('analyzer')"><div class="stage-left"><div class="stage-icon">2</div><span class="stage-name">Analyzer</span></div><span class="stage-meta" id="meta-analyzer">Resolves actions, flags ambiguities</span></div><div class="stage-body" id="body-analyzer"></div></div>
+          <div class="stage" id="stage-planner"><div class="stage-header" onclick="toggleStage('planner')"><div class="stage-left"><div class="stage-icon">3</div><span class="stage-name">Planner</span></div><span class="stage-meta" id="meta-planner">Builds DAG, assigns triggers</span></div><div class="stage-body" id="body-planner"></div></div>
+          <div class="stage" id="stage-serializer"><div class="stage-header" onclick="toggleStage('serializer')"><div class="stage-left"><div class="stage-icon">4</div><span class="stage-name">Serializer</span></div><span class="stage-meta" id="meta-serializer">Produces final workflow JSON</span></div><div class="stage-body" id="body-serializer"></div></div>
+        </div>
+        <div class="workflow-output" id="resultArea">
+          <div class="empty-state" id="emptyState">
+            <div class="icon">&#9881;</div>
+            <p>Enter a workflow description and click Generate to see the step-by-step pipeline output</p>
+          </div>
+          <div id="resultContent" style="display:none;">
+            <div class="summary-cards" id="summaryCards"></div>
+            <div class="output-header">
+              <h3>Workflow Definition</h3>
+              <div class="output-actions">
+                <button class="btn-sm" onclick="copyOutput()">Copy JSON</button>
+                <button class="btn-sm" onclick="downloadOutput()">Download</button>
+              </div>
+            </div>
+            <div class="format-tabs">
+              <div class="format-tab active" onclick="switchFormat('json', this)">JSON</div>
+              <div class="format-tab" onclick="switchFormat('n8n', this)">n8n Format</div>
+            </div>
+            <div class="output-code" id="outputCode"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- TAB: MY WORKFLOWS ---- -->
+  <div class="tab-content" id="tab-history">
+    <div class="history-panel">
+      <h2>My Workflows</h2>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- ---- TAB: RECORD ---- -->
+  <div class="tab-content" id="tab-record">
+    <div class="record-panel">
+      <h2>Screen Recording</h2>
+      <div class="record-control">
+        <div class="record-status">
+          <div class="record-dot" id="recordDot"></div>
+          <span class="record-label" id="recordLabel">Idle</span>
+        </div>
+        <span class="record-timer" id="recordTimer"></span>
+        <button class="btn-record start" id="recordBtn" onclick="toggleRecording()">Start Recording</button>
+      </div>
+      <p class="hint" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.5;">
+        Hit Start to record your screen activity. When you stop, AI analyzes the session and suggests automations in the Suggested tab.
+      </p>
+      <h2>Past Sessions</h2>
+      <div id="recordSuggestions"><p class="history-empty">No recordings yet. Start a session above.</p></div>
+    </div>
+  </div>
+
+  <!-- ---- TAB: SUGGESTED ---- -->
+  <div class="tab-content" id="tab-suggested">
+    <div class="record-panel">
+      <h2>Suggested Workflows</h2>
+      <p class="hint" style="font-size:0.85rem; color:var(--text-dim); margin-bottom:1.5rem; line-height:1.5;">
+        AI-detected patterns from your recordings. Click Generate Workflow to refine and create an automation.
+      </p>
+      <div id="suggestedList"><p class="history-empty">No suggestions yet.</p></div>
+    </div>
+  </div>
+
+  <!-- ---- AI EXECUTION OVERLAY ---- -->
+  <div class="ai-overlay" id="aiOverlay" style="display:none;">
+    <div class="ai-overlay-content">
+      <div class="ai-overlay-header">
+        <h2>AI Executing Workflow</h2>
+        <button class="ai-overlay-close" id="aiCloseBtn" onclick="closeAiOverlay()">&times;</button>
+      </div>
+      <div class="ai-overlay-desc" id="aiOverlayDesc"></div>
+      <div class="ai-feed-items" id="aiFeedItems"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = window.location.port === '8000' ? '' : 'http://localhost:8000';
+  let token = localStorage.getItem('token');
+  let currentUser = null;
+  let currentWorkflow = null;
+  let currentN8n = null;
+  let savedWorkflowId = null;
+  let recordingStartTime = null;
+  let recordingTimerInterval = null;
+
+  // ---- AUTH ----
+  function headers() {
+    const h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+
+  function hideAll() {
+    document.getElementById('landingScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('signupScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'none';
+  }
+  function showLanding() {
+    hideAll();
+    document.getElementById('landingScreen').style.display = 'flex';
+  }
+  function showLogin() {
+    hideAll();
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+  function showSignup() {
+    hideAll();
+    document.getElementById('signupScreen').style.display = 'flex';
+  }
+  function showApp(user) {
+    currentUser = user;
+    hideAll();
+    document.getElementById('appScreen').style.display = 'block';
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('headerGreeting').textContent = greeting + ',';
+    document.getElementById('headerUser').textContent = user.username;
+  }
+
+  async function doLogin() {
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    if (!username || !password) { errEl.textContent = 'Fill in all fields'; errEl.style.display = 'block'; return; }
+    try {
+      const r = await fetch(API + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const d = await r.json();
+      if (!r.ok) { errEl.textContent = d.detail || 'Login failed'; errEl.style.display = 'block'; return; }
+      token = d.token;
+      localStorage.setItem('token', token);
+      showApp(d.user);
+    } catch { errEl.textContent = 'Cannot connect to API'; errEl.style.display = 'block'; }
+  }
+
+  async function doSignup() {
+    const errEl = document.getElementById('signupError');
+    errEl.style.display = 'none';
+    const username = document.getElementById('signupUser').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPass').value;
+    if (!username || !email || !password) { errEl.textContent = 'Fill in all fields'; errEl.style.display = 'block'; return; }
+    try {
+      const r = await fetch(API + '/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, email, password }) });
+      const d = await r.json();
+      if (!r.ok) { const msg = Array.isArray(d.detail) ? d.detail.map(e => e.msg).join(', ') : d.detail || 'Signup failed'; errEl.textContent = msg; errEl.style.display = 'block'; return; }
+      token = d.token;
+      localStorage.setItem('token', token);
+      showApp(d.user);
+    } catch { errEl.textContent = 'Cannot connect to API'; errEl.style.display = 'block'; }
+  }
+
+  function doLogout() {
+    token = null;
+    localStorage.removeItem('token');
+    currentUser = null;
+    document.getElementById('appScreen').style.display = 'none';
+    showLanding();
+  }
+
+  async function checkSession() {
+    if (!token) return;
+    try {
+      const r = await fetch(API + '/auth/me', { headers: headers() });
+      if (r.ok) { const d = await r.json(); showApp(d); }
+      else { localStorage.removeItem('token'); token = null; }
+    } catch {}
+  }
+
+  // ---- TABS ----
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+    else document.querySelector(`[data-tab="${name}"]`)?.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'history') loadHistory();
+    if (name === 'record') { checkRecordingStatus(); loadRecordSuggestions(); }
+    if (name === 'suggested') loadSuggestedTab();
+  }
+
+  // ---- HISTORY ----
+  async function loadHistory() {
+    const el = document.getElementById('historyList');
+    el.innerHTML = '<p class="history-empty">Loading...</p>';
+    try {
+      const r = await fetch(API + '/workflows/history', { headers: headers() });
+      if (!r.ok) { el.innerHTML = '<p class="history-empty">Failed to load workflows</p>'; return; }
+      const list = await r.json();
+      if (list.length === 0) { el.innerHTML = '<p class="history-empty">No workflows yet. Create one!</p>'; return; }
+      el.innerHTML = '<div class="history-list">' + list.map(w => `
+        <div class="history-item" onclick="viewWorkflow(${w.id})">
+          <div class="history-item-info">
+            <div class="history-item-name">${esc(w.name)}</div>
+            <div class="history-item-desc">${esc(w.description)}</div>
+            <div class="history-item-meta">
+              ${new Date(w.created_at).toLocaleString()}
+              ${w.n8n_id ? '<span class="n8n-badge">n8n #' + esc(w.n8n_id) + '</span>' : '<span class="local-badge">Local</span>'}
+            </div>
+          </div>
+          <div class="history-item-actions">
+            <button class="btn-sm" onclick="event.stopPropagation(); viewWorkflow(${w.id})">View</button>
+            <button class="btn-delete" onclick="event.stopPropagation(); deleteWorkflow(${w.id})">Delete${w.n8n_id ? ' (+ n8n)' : ''}</button>
+          </div>
+        </div>
+      `).join('') + '</div>';
+    } catch { el.innerHTML = '<p class="history-empty">Cannot connect to API</p>'; }
+  }
+
+  async function viewWorkflow(id) {
+    try {
+      const r = await fetch(API + '/workflows/history/' + id, { headers: headers() });
+      if (!r.ok) return;
+      const d = await r.json();
+      switchTab('create');
+      document.getElementById('description').value = d.description;
+      currentWorkflow = d.workflow;
+      currentN8n = toN8nFormat(d.workflow);
+      savedWorkflowId = d.id;
+      showResult(d.workflow);
+      enableDeploy();
+    } catch {}
+  }
+
+  // ---- WORKFLOW GENERATION ----
+  function useExample(el) { document.getElementById('description').value = el.textContent; }
+  function clearAll() {
+    document.getElementById('description').value = '';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('resultContent').style.display = 'none';
+    currentWorkflow = null; currentN8n = null; savedWorkflowId = null;
+    ['parser','analyzer','planner','serializer'].forEach(s => {
+      document.getElementById('stage-' + s).className = 'stage';
+      document.getElementById('body-' + s).innerHTML = '';
+      document.getElementById('body-' + s).classList.remove('open');
+    });
+    resetMeta();
+    document.getElementById('aiOverlay').style.display = 'none';
+    document.getElementById('aiFeedItems').innerHTML = '';
+    document.getElementById('runAiBtn').disabled = true;
+  }
+  function resetMeta() {
+    document.getElementById('meta-parser').textContent = 'Extracts actions, entities, triggers';
+    document.getElementById('meta-analyzer').textContent = 'Resolves actions, flags ambiguities';
+    document.getElementById('meta-planner').textContent = 'Builds DAG, assigns triggers';
+    document.getElementById('meta-serializer').textContent = 'Produces final workflow JSON';
+  }
+  function toggleStage(name) { document.getElementById('body-' + name).classList.toggle('open'); }
+  function setStageActive(name) {
+    document.getElementById('stage-' + name).className = 'stage active';
+    document.getElementById('meta-' + name).innerHTML = '<span class="spinner"></span>';
+  }
+  function setStageDone(name, ms, data) {
+    document.getElementById('stage-' + name).className = 'stage done';
+    document.getElementById('meta-' + name).textContent = ms + ' ms';
+    if (data) document.getElementById('body-' + name).innerHTML = '<pre>' + esc(JSON.stringify(data, null, 2)) + '</pre>';
+  }
+  function setStageError(name, msg) {
+    document.getElementById('stage-' + name).className = 'stage error';
+    document.getElementById('meta-' + name).textContent = 'Error';
+    document.getElementById('body-' + name).innerHTML = '<pre style="color:var(--error)">' + esc(msg) + '</pre>';
+    document.getElementById('body-' + name).classList.add('open');
+  }
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  async function generate() {
+    const desc = document.getElementById('description').value.trim();
+    if (!desc) return;
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true; btn.textContent = 'Generating...';
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultContent').style.display = 'none';
+    currentWorkflow = null; currentN8n = null; savedWorkflowId = null;
+    ['parser','analyzer','planner','serializer'].forEach(s => { document.getElementById('stage-' + s).className = 'stage'; document.getElementById('body-' + s).innerHTML = ''; document.getElementById('body-' + s).classList.remove('open'); });
+    resetMeta();
+    const stages = ['parser','analyzer','planner','serializer'];
+    let idx = 0; setStageActive(stages[0]);
+    const iv = setInterval(() => { idx++; if (idx < stages.length) setStageActive(stages[idx]); }, 600);
+    try {
+      const resp = await fetch(API + '/workflows/generate-steps', { method: 'POST', headers: headers(), body: JSON.stringify({ description: desc, output_format: 'json', strict_mode: false }) });
+      clearInterval(iv);
+      const data = await resp.json();
+      for (const st of stages) {
+        const sd = data[st] || data.stages?.[st];
+        if (!sd) { document.getElementById('stage-' + st).className = 'stage'; continue; }
+        if (sd.status === 'success') setStageDone(st, sd.duration_ms || '?', sd.result);
+        else if (sd.status === 'error') setStageError(st, sd.error || 'Unknown error');
+        else if (sd.status === 'ambiguous') setStageError(st, 'Ambiguous input:\n' + JSON.stringify(sd.ambiguities || sd.result, null, 2));
+      }
+      const wf = data.workflow || data.stages?.workflow;
+      if (wf && resp.ok) {
+        currentWorkflow = wf; currentN8n = toN8nFormat(wf);
+        savedWorkflowId = data.saved_id || null;
+        showResult(wf); enableDeploy();
+      } else if (!resp.ok) {
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('emptyState').innerHTML = '<div class="icon" style="color:var(--error)">&#9888;</div><p style="color:var(--error)">Pipeline failed at stage: ' + esc(data.stage || 'unknown') + '</p>';
+      }
+    } catch (err) {
+      clearInterval(iv); stages.forEach(s => setStageError(s, 'Network error'));
+      document.getElementById('emptyState').style.display = 'flex';
+      document.getElementById('emptyState').innerHTML = '<div class="icon" style="color:var(--error)">&#9888;</div><p style="color:var(--error)">Failed to connect to API. Is the server running?</p>';
+    }
+    btn.disabled = false; btn.textContent = 'Generate Workflow';
+  }
+
+  function showResult(wf) {
+    document.getElementById('resultContent').style.display = 'block';
+    document.getElementById('emptyState').style.display = 'none';
+    const trigger = wf.trigger?.type || 'manual', steps = wf.steps?.length || 0, params = wf.parameters?.length || 0;
+    document.getElementById('summaryCards').innerHTML = `<div class="summary-card"><div class="label">Trigger</div><div class="value">${esc(trigger)}</div></div><div class="summary-card"><div class="label">Steps</div><div class="value">${steps}</div></div><div class="summary-card"><div class="label">Parameters</div><div class="value">${params}</div></div>`;
+    document.getElementById('outputCode').textContent = JSON.stringify(wf, null, 2);
+    document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.format-tab').classList.add('active');
+  }
+
+  // ---- n8n FORMAT ----
+  function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
+
+  function toN8nFormat(wf) {
+    const nodes = [], conns = {};
+    const xStart = 250, yCenter = 400, xGap = 300;
+
+    // ── Action → n8n node mapping ──
+    const map = {
+      fetch_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Fetch Data',         ver: 4.2 },
+      http_request:      { type: 'n8n-nodes-base.httpRequest',      name: 'HTTP Request',       ver: 4.2 },
+      transform_data:    { type: 'n8n-nodes-base.code',             name: 'Transform Data',     ver: 2 },
+      filter_data:       { type: 'n8n-nodes-base.filter',           name: 'Filter',             ver: 2 },
+      send_email:        { type: 'n8n-nodes-base.emailSend',        name: 'Send Email',         ver: 2.1 },
+      send_notification: { type: 'n8n-nodes-base.slack',            name: 'Send Notification',  ver: 2.2 },
+      send_slack:        { type: 'n8n-nodes-base.slack',            name: 'Slack Message',      ver: 2.2 },
+      write_file:        { type: 'n8n-nodes-base.writeBinaryFile',  name: 'Write File',         ver: 1 },
+      read_file:         { type: 'n8n-nodes-base.readBinaryFile',   name: 'Read File',          ver: 1 },
+      summarize:         { type: 'n8n-nodes-base.code',             name: 'Summarize',          ver: 2 },
+      aggregate:         { type: 'n8n-nodes-base.code',             name: 'Aggregate',          ver: 2 },
+      store_data:        { type: 'n8n-nodes-base.httpRequest',      name: 'Store Data',         ver: 4.2 },
+      check_condition:   { type: 'n8n-nodes-base.if',               name: 'Check Condition',    ver: 2 },
+      wait:              { type: 'n8n-nodes-base.wait',             name: 'Wait',               ver: 1.1 },
+      validate:          { type: 'n8n-nodes-base.code',             name: 'Validate',           ver: 2 },
+    };
+
+    // ── Trigger node ──
+    let trig;
+    if (wf.trigger?.type === 'schedule') {
+      trig = {
+        id: uuid(), name: 'Schedule Trigger', type: 'n8n-nodes-base.scheduleTrigger',
+        typeVersion: 1.1, position: [xStart, yCenter],
+        parameters: { rule: { interval: [{ field: 'cronExpression', expression: wf.trigger.config?.cron || '0 9 * * 1' }] } },
+      };
+    } else if (wf.trigger?.type === 'webhook') {
+      trig = {
+        id: uuid(), name: 'Webhook', type: 'n8n-nodes-base.webhook',
+        typeVersion: 1.1, position: [xStart, yCenter],
+        parameters: { path: wf.trigger.config?.webhook_path || '/webhook', httpMethod: 'POST' },
+      };
+    } else {
+      trig = {
+        id: uuid(), name: 'When clicking \u201cTest workflow\u201d', type: 'n8n-nodes-base.manualTrigger',
+        typeVersion: 1, position: [xStart, yCenter], parameters: {},
+      };
+    }
+    nodes.push(trig);
+
+    // ── Sticky note with workflow description ──
+    const desc = wf.description || wf.name || '';
+    if (desc) {
+      nodes.push({
+        id: uuid(),
+        name: 'Sticky Note',
+        type: 'n8n-nodes-base.stickyNote',
+        typeVersion: 1,
+        position: [xStart - 50, yCenter - 220],
+        parameters: {
+          content: '## ' + (wf.name || 'Generated Workflow') + '\n\n' + desc + '\n\n_Generated by LastautAI_',
+          width: Math.max(400, (wf.steps?.length || 1) * xGap + 100),
+          height: 140,
+        },
+      });
+    }
+
+    // ── Step nodes ──
+    const stepNodes = [];
+    (wf.steps || []).forEach((s, i) => {
+      const m = map[s.action] || { type: 'n8n-nodes-base.code', name: s.action || ('Step ' + (i + 1)), ver: 2 };
+
+      // Deduplicate names
+      let nm = m.name;
+      const dupes = wf.steps.filter(x => x.action === s.action);
+      if (dupes.length > 1) nm = m.name + ' ' + (dupes.indexOf(s) + 1);
+
+      // Slight zigzag for visual appeal
+      const yOffset = (i % 2 === 0) ? 0 : 50;
+
+      const nd = {
+        id: uuid(),
+        name: nm,
+        type: m.type,
+        typeVersion: m.ver || 1,
+        position: [xStart + (i + 1) * xGap, yCenter + yOffset],
+        parameters: {},
+        notesInFlow: true,
+        notes: s.description || '',
+      };
+
+      // Populate some parameters based on action type
+      if (s.action === 'fetch_data' || s.action === 'http_request') {
+        nd.parameters = { url: s.config?.url || '={{ $json.url }}', method: s.config?.method || 'GET' };
+      } else if (s.action === 'send_email') {
+        nd.parameters = { toEmail: s.config?.to || '', subject: s.config?.subject || s.description || '', emailFormat: 'text' };
+      } else if (s.action === 'transform_data' || s.action === 'summarize' || s.action === 'aggregate' || s.action === 'validate') {
+        nd.parameters = { jsCode: '// ' + (s.description || nm) + '\n// TODO: implement transformation logic\nreturn items;' };
+      } else if (s.action === 'filter_data' || s.action === 'check_condition') {
+        nd.parameters = {};
+      } else if (s.action === 'send_notification' || s.action === 'send_slack') {
+        nd.parameters = { channel: s.config?.channel || '', text: '={{ $json.message }}' };
+      }
+
+      nodes.push(nd);
+      stepNodes.push(nd);
+    });
+
+    // ── Connections ──
+    if (stepNodes.length > 0) {
+      conns[trig.name] = { main: [[{ node: stepNodes[0].name, type: 'main', index: 0 }]] };
+      for (let i = 0; i < stepNodes.length - 1; i++) {
+        conns[stepNodes[i].name] = { main: [[{ node: stepNodes[i + 1].name, type: 'main', index: 0 }]] };
+      }
+    }
+
+    return {
+      name: wf.name || 'Generated Workflow',
+      nodes,
+      connections: conns,
+      settings: { executionOrder: 'v1' },
+    };
+  }
+
+  function switchFormat(fmt, el) {
+    document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('outputCode').textContent = JSON.stringify(fmt === 'n8n' ? currentN8n : currentWorkflow, null, 2);
+  }
+  function copyOutput() {
+    navigator.clipboard.writeText(document.getElementById('outputCode').textContent).then(() => {
+      const b = document.querySelectorAll('.btn-sm')[0]; b.textContent = 'Copied!'; b.classList.add('copied');
+      setTimeout(() => { b.textContent = 'Copy JSON'; b.classList.remove('copied'); }, 2000);
+    });
+  }
+  function downloadOutput() {
+    const active = document.querySelector('.format-tab.active').textContent.trim();
+    const d = active === 'n8n Format' ? currentN8n : currentWorkflow;
+    const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = (d.name || 'workflow').replace(/\s+/g, '_').toLowerCase() + '.json'; a.click();
+  }
+
+  // ---- n8n DEPLOY ----
+  async function deployToN8n() {
+    const n8nUrl = document.getElementById('n8nUrl').value.trim().replace(/\/+$/, '');
+    const apiKey = document.getElementById('n8nApiKey').value.trim();
+    const statusEl = document.getElementById('n8nStatus');
+    if (!n8nUrl || !apiKey) { statusEl.className = 'n8n-status error'; statusEl.textContent = 'Enter both n8n URL and API key.'; return; }
+    if (!currentN8n) { statusEl.className = 'n8n-status error'; statusEl.textContent = 'Generate a workflow first.'; return; }
+    const btn = document.getElementById('deployBtn'); btn.disabled = true; btn.textContent = 'Deploying...';
+    statusEl.className = 'n8n-status'; statusEl.style.display = 'none';
+    try {
+      const resp = await fetch(API + '/n8n/deploy', { method: 'POST', headers: headers(), body: JSON.stringify({ n8n_url: n8nUrl, api_key: apiKey, workflow: currentN8n, saved_id: savedWorkflowId }) });
+      const data = await resp.json();
+      if (resp.ok && data.id) {
+        statusEl.className = 'n8n-status success';
+        statusEl.innerHTML = `
+          <div style="text-align:center;padding:0.5rem 0">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">&#10003;</div>
+            <div style="font-size:1rem;font-weight:700;margin-bottom:0.25rem">Successfully deployed!</div>
+            <div style="font-size:0.85rem;margin-bottom:0.75rem;opacity:0.85">Your workflow is live in n8n (ID: ${esc(String(data.id))})</div>
+            <a href="${esc(n8nUrl)}/workflow/${esc(String(data.id))}" target="_blank" style="display:inline-block;padding:0.5rem 1.25rem;background:rgba(0,206,201,0.15);border:1px solid var(--success);border-radius:8px;color:var(--success);text-decoration:none;font-weight:600;font-size:0.85rem;transition:all 0.2s">
+              Open in n8n &rarr;
+            </a>
+          </div>`;
+        btn.textContent = 'Deployed!';
+        btn.style.background = 'var(--success)';
+        setTimeout(() => { btn.style.background = ''; btn.textContent = 'Deploy to n8n'; }, 4000);
+      } else { statusEl.className = 'n8n-status error'; statusEl.textContent = JSON.stringify(data.detail || data.error || data, null, 2); }
+    } catch (err) { statusEl.className = 'n8n-status error'; statusEl.textContent = 'Could not reach API: ' + err.message; }
+    btn.disabled = false;
+  }
+  function enableDeploy() { document.getElementById('deployBtn').disabled = false; document.getElementById('runAiBtn').disabled = false; }
+
+  // ---- AI EXECUTION ----
+  function closeAiOverlay() {
+    document.getElementById('aiOverlay').style.display = 'none';
+  }
+
+  async function runWithAI() {
+    const desc = document.getElementById('description').value.trim();
+    if (!desc && !currentWorkflow) return;
+
+    const btn = document.getElementById('runAiBtn');
+    btn.disabled = true; btn.textContent = 'Executing...';
+
+    // Open overlay
+    const overlay = document.getElementById('aiOverlay');
+    const items = document.getElementById('aiFeedItems');
+    const descEl = document.getElementById('aiOverlayDesc');
+    overlay.style.display = 'flex';
+    descEl.textContent = desc.slice(0, 150) + (desc.length > 150 ? '...' : '');
+    items.innerHTML = '<div class="ai-feed-item loading">Connecting to AI engine<span class="loading-dots"></span></div>';
+    document.getElementById('aiCloseBtn').style.display = 'none';
+
+    try {
+      const resp = await fetch(API + '/workflows/execute-ai', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ description: desc, workflow: currentWorkflow || null }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.text();
+        items.innerHTML = `<div class="ai-feed-item error">API error (${resp.status}): ${esc(err.slice(0, 200))}</div>`;
+        document.getElementById('aiCloseBtn').style.display = 'flex';
+        btn.disabled = false; btn.textContent = 'Run with AI';
+        return;
+      }
+
+      // Clear loading message
+      items.innerHTML = '';
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let stepCount = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop();
+
+        for (const chunk of chunks) {
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            let event;
+            try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+            if (event.type === 'step_start') {
+              stepCount++;
+              const inputStr = Object.entries(event.input || {}).map(([k,v]) => `${k}: ${String(v).slice(0,80)}`).join(', ');
+              const div = document.createElement('div');
+              div.className = 'ai-feed-item running';
+              div.id = 'ai-step-' + stepCount;
+              div.innerHTML = `
+                <div><span class="step-dot"></span><span class="step-tool">Step ${stepCount}: ${esc(event.tool)}</span></div>
+                <div class="step-input">${esc(inputStr)}</div>
+              `;
+              items.appendChild(div);
+            } else if (event.type === 'step_complete') {
+              const running = document.getElementById('ai-step-' + stepCount);
+              if (running) {
+                running.classList.remove('running');
+                running.classList.add('done');
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'step-result';
+                resultDiv.textContent = summarizeResult(event.result);
+                running.appendChild(resultDiv);
+              }
+            } else if (event.type === 'thinking') {
+              const div = document.createElement('div');
+              div.className = 'ai-feed-item thinking';
+              div.textContent = event.text;
+              items.appendChild(div);
+            } else if (event.type === 'complete') {
+              const div = document.createElement('div');
+              div.className = 'ai-feed-item final';
+              div.textContent = 'Workflow execution complete';
+              items.appendChild(div);
+            } else if (event.type === 'error') {
+              const div = document.createElement('div');
+              div.className = 'ai-feed-item error';
+              div.textContent = event.message;
+              items.appendChild(div);
+            }
+            items.scrollTop = items.scrollHeight;
+          }
+        }
+      }
+    } catch (err) {
+      const div = document.createElement('div');
+      div.className = 'ai-feed-item error';
+      div.textContent = 'Connection error: ' + err.message;
+      items.appendChild(div);
+    }
+    document.getElementById('aiCloseBtn').style.display = 'flex';
+    btn.disabled = false; btn.textContent = 'Run with AI';
+  }
+
+  function summarizeResult(result) {
+    if (!result) return 'Done';
+    if (result.error) return 'Error: ' + result.error;
+    if (result.sent && result.message_preview) return (result.simulated ? '[Simulated] ' : '') + 'Sent: "' + result.message_preview.slice(0, 100) + '"';
+    if (result.sent) return (result.simulated ? '[Simulated] ' : '') + 'Sent to ' + (result.channel || result.to || 'recipient');
+    if (result.data && typeof result.data === 'string') return 'Fetched: ' + result.data.slice(0, 120);
+    if (result.data) return 'Fetched data (' + (result.status_code || '200') + '): ' + JSON.stringify(result.data).slice(0, 120);
+    if (result.transformed) return 'Transformed: ' + (result.instruction || '').slice(0, 100);
+    if (result.created) return 'Created: ' + (result.title || 'document');
+    if (result.logged) return result.message ? result.message.slice(0, 150) : 'Logged';
+    if (result.body_preview) return 'Email: "' + result.body_preview.slice(0, 100) + '"';
+    if (result.content_preview) return result.content_preview.slice(0, 150);
+    return JSON.stringify(result).slice(0, 150);
+  }
+
+  // ---- RECORDING ----
+  let recordingPollInterval = null;
+
+  async function checkRecordingStatus() {
+    try {
+      const r = await fetch(API + '/capture/status', { headers: headers() });
+      if (r.ok) {
+        const d = await r.json();
+        updateRecordingUI(d.recording);
+      }
+    } catch {}
+  }
+
+  function updateRecordingUI(isRecording) {
+    const dot = document.getElementById('recordDot');
+    const label = document.getElementById('recordLabel');
+    const btn = document.getElementById('recordBtn');
+    const timer = document.getElementById('recordTimer');
+    if (isRecording) {
+      dot.classList.add('active');
+      label.textContent = 'Recording...';
+      btn.textContent = 'Stop Recording';
+      btn.className = 'btn-record stop';
+      if (!recordingStartTime) recordingStartTime = Date.now();
+      if (!recordingTimerInterval) {
+        recordingTimerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+          const m = Math.floor(elapsed / 60);
+          const s = elapsed % 60;
+          timer.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }, 1000);
+      }
+    } else {
+      dot.classList.remove('active');
+      label.textContent = 'Idle';
+      btn.textContent = 'Start Recording';
+      btn.className = 'btn-record start';
+      timer.textContent = '';
+      recordingStartTime = null;
+      if (recordingTimerInterval) { clearInterval(recordingTimerInterval); recordingTimerInterval = null; }
+    }
+  }
+
+  async function toggleRecording() {
+    const btn = document.getElementById('recordBtn');
+    const isStop = btn.classList.contains('stop');
+    btn.disabled = true;
+    try {
+      const endpoint = isStop ? '/capture/stop' : '/capture/start';
+      const r = await fetch(API + endpoint, { method: 'POST', headers: headers() });
+      const d = await r.json();
+      updateRecordingUI(!isStop);
+      if (!isStop) {
+        recordingStartTime = Date.now();
+        if (!recordingPollInterval) {
+          recordingPollInterval = setInterval(loadRecordSuggestions, 30000);
+        }
+      } else {
+        if (recordingPollInterval) { clearInterval(recordingPollInterval); recordingPollInterval = null; }
+        loadRecordSuggestions();
+      }
+    } catch {}
+    btn.disabled = false;
+  }
+
+  async function loadRecordSuggestions() {
+    try {
+      const r = await fetch(API + '/capture/suggestions', { headers: headers() });
+      if (!r.ok) return;
+      const d = await r.json();
+      renderRecordingSessions(d.suggestions, 'recordSuggestions');
+    } catch {}
+  }
+
+  function renderRecordingSessions(suggestions, containerId) {
+    const el = document.getElementById(containerId);
+    if (suggestions.length === 0) {
+      el.innerHTML = '<p class="history-empty">No recordings yet. Start a session above.</p>';
+      return;
+    }
+    const total = suggestions.length;
+    el.innerHTML = suggestions.map((s, i) => {
+      const num = total - i;
+      const time = s.created_at ? new Date(s.created_at).toLocaleString() : '';
+      const title = s.summary || 'Analyzing...';
+      return `
+      <div class="recording-item">
+        <div class="recording-item-info">
+          <div class="recording-item-title">Session ${num}</div>
+          <div class="recording-item-meta">${time} &mdash; ${esc(title)}</div>
+        </div>
+        <button class="btn-delete" onclick="deleteSuggestion(${s.id})">Delete</button>
+      </div>
+    `}).join('');
+  }
+
+  async function loadSuggestedTab() {
+    try {
+      const r = await fetch(API + '/capture/suggestions', { headers: headers() });
+      if (!r.ok) return;
+      const d = await r.json();
+      renderSuggestions(d.suggestions, 'suggestedList');
+    } catch {}
+  }
+
+  // Store suggestion prompts by ID so we don't need inline strings in onclick
+  const _suggestionPrompts = {};
+
+  function renderSuggestions(suggestions, containerId) {
+    const el = document.getElementById(containerId);
+    if (suggestions.length === 0) {
+      el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
+      return;
+    }
+    const visible = suggestions.filter(s => s.status !== 'dismissed');
+    if (visible.length === 0) {
+      el.innerHTML = '<p class="history-empty">No suggestions yet.</p>';
+      return;
+    }
+    visible.forEach(s => { _suggestionPrompts[s.id] = s.refined_prompt || s.description; });
+    el.innerHTML = visible.map(s => {
+      const title = (s.summary && s.summary.length > 0) ? s.summary : s.description.substring(0, 100);
+      const hasRefined = s.refined_prompt && s.refined_prompt.length > 0;
+      return `
+      <div class="suggestion-card">
+        <div class="suggestion-meta">
+          <span class="suggestion-badge ${s.status}">${s.status}</span>
+          &nbsp; ${s.created_at ? new Date(s.created_at).toLocaleString() : ''}
+        </div>
+        <div class="suggestion-desc" style="font-size:1rem;font-weight:600;margin-bottom:0.5rem">${esc(title)}</div>
+        ${hasRefined ? `
+          <div style="font-size:0.75rem;color:var(--accent-light);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:0.35rem">Workflow prompt</div>
+          <div class="suggestion-desc" style="font-size:0.85rem;line-height:1.6;margin-bottom:0.75rem;padding:0.75rem;background:rgba(108,92,231,0.06);border:1px solid rgba(108,92,231,0.15);border-radius:8px;color:var(--text)">
+            ${esc(s.refined_prompt)}
+          </div>
+        ` : `
+        `}
+        <div style="font-size:0.78rem;color:var(--text-dim);cursor:pointer;margin-bottom:0.5rem" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          &#9654; Show raw analysis
+        </div>
+        <div class="suggestion-desc" style="display:none;font-size:0.8rem;color:var(--text-dim);line-height:1.6;background:rgba(255,255,255,0.03);padding:0.75rem;border-radius:6px">${esc(s.description)}</div>
+        <div class="suggestion-actions">
+          ${(s.status === 'pending' || s.status === 'approved') ? `
+            <button class="btn-send-create" onclick="sendToCreateById(${s.id}, '${s.status}')">Generate Workflow &rarr;</button>
+          ` : ''}
+          <button class="btn-dismiss" onclick="dismissSuggestion(${s.id})">Dismiss</button>
+        </div>
+      </div>
+    `}).join('');
+  }
+
+  async function dismissSuggestion(id) {
+    await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'dismissed' }) });
+    loadRecordSuggestions();
+    loadSuggestedTab();
+  }
+
+  async function deleteSuggestion(id) {
+    await fetch(API + '/capture/suggestions/' + id, { method: 'DELETE', headers: headers() });
+    loadRecordSuggestions();
+    loadSuggestedTab();
+  }
+
+  async function deleteWorkflow(id) {
+    const n8nUrl = document.getElementById('n8nUrl').value.trim().replace(/\/+$/, '');
+    const apiKey = document.getElementById('n8nApiKey').value.trim();
+    let url = API + '/workflows/history/' + id;
+    if (n8nUrl && apiKey) {
+      url += '?n8n_url=' + encodeURIComponent(n8nUrl) + '&n8n_api_key=' + encodeURIComponent(apiKey);
+    }
+    await fetch(url, { method: 'DELETE', headers: headers() });
+    loadHistory();
+  }
+
+  function sendToCreate(description) {
+    switchTab('create');
+    document.getElementById('description').value = description;
+  }
+
+  async function sendToCreateById(id, status) {
+    if (status === 'pending') {
+      try {
+        const r = await fetch(API + '/capture/suggestions/' + id, { method: 'POST', headers: headers(), body: JSON.stringify({ status: 'approved' }) });
+        const d = await r.json();
+        if (d.refined_prompt) {
+          _suggestionPrompts[id] = d.refined_prompt;
+        }
+        loadSuggestedTab();
+      } catch {}
+    }
+    const prompt = _suggestionPrompts[id] || '';
+    switchTab('create');
+    document.getElementById('description').value = prompt;
+  }
+
+  // ---- KEYBOARD ----
+  document.getElementById('description').addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate(); });
+  document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('signupPass').addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+
+  // ---- INIT ----
+  checkSession();
+</script>
+</body>
+</html>

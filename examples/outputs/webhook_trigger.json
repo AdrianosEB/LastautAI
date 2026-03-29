@@ -1,0 +1,67 @@
+{
+  "name": "Order Processing Workflow",
+  "trigger": {
+    "type": "event",
+    "config": {
+      "cron": null,
+      "event_type": "When a new order comes in via webhook",
+      "webhook_path": null
+    }
+  },
+  "steps": [
+    {
+      "id": "step_1",
+      "action": "transform_data",
+      "description": "Validate the order data",
+      "inputs": {
+        "data": "${trigger.payload}",
+        "operation": "validate"
+      },
+      "outputs": {
+        "transformed_data": "object"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "step_2",
+      "action": "http_request",
+      "description": "Update the inventory system",
+      "inputs": {
+        "url": "inventory_api",
+        "method": "POST"
+      },
+      "outputs": {
+        "response": "object",
+        "status_code": "number"
+      },
+      "dependencies": ["step_1"]
+    },
+    {
+      "id": "step_3",
+      "action": "send_email",
+      "description": "Send a confirmation email to the customer",
+      "inputs": {
+        "to": "customer",
+        "subject": "Order Confirmation",
+        "body": "Your order has been processed"
+      },
+      "outputs": {
+        "sent": "boolean"
+      },
+      "dependencies": ["step_2"]
+    }
+  ],
+  "parameters": [],
+  "error_handling": {
+    "default_retry": {
+      "max_attempts": 3,
+      "backoff": "fixed",
+      "delay_seconds": 5
+    },
+    "on_failure": "stop",
+    "step_overrides": {}
+  },
+  "assumptions": [
+    "Actions are assumed to execute sequentially in the order described"
+  ]
+}

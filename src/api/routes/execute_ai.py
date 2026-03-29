@@ -1,0 +1,320 @@
+"""
+AI-powered workflow execution — Claude uses tools to run workflows step by step.
+Streams progress back to the frontend via SSE.
+"""
+
+import json
+import logging
+import os
+
+import httpx
+from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+from src.auth.dependencies import get_current_user
+from src.db.models import User
+from src.utils.ai_client import get_client
+
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/workflows", tags=["execute-ai"])
+
+TOOLS = [
+    {
+        "name": "fetch_url",
+        "description": "Fetch data from a URL. Use this to read web pages, call APIs, or download data.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "The URL to fetch"},
+                "method": {"type": "string", "enum": ["GET", "POST", "PUT", "DELETE"], "description": "HTTP method"},
+            },
+            "required": ["url"],
+        },
+    },
+    {
+        "name": "send_slack_message",
+        "description": "Send a message to a Slack channel.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "channel": {"type": "string", "description": "Slack channel name (e.g. #general)"},
+                "message": {"type": "string", "description": "The message text to send"},
+            },
+            "required": ["channel", "message"],
+        },
+    },
+    {
+        "name": "send_email",
+        "description": "Send an email to a recipient.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "to": {"type": "string", "description": "Recipient email address"},
+                "subject": {"type": "string", "description": "Email subject line"},
+                "body": {"type": "string", "description": "Email body content"},
+            },
+            "required": ["to", "subject", "body"],
+        },
+    },
+    {
+        "name": "transform_data",
+        "description": "Transform, filter, or format data. Use this for any data processing step.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "data": {"type": "string", "description": "The input data to transform (JSON string)"},
+                "instruction": {"type": "string", "description": "What transformation to apply"},
+            },
+            "required": ["data", "instruction"],
+        },
+    },
+    {
+        "name": "create_document",
+        "description": "Create a document, report, or summary.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Document title"},
+                "content": {"type": "string", "description": "Document content"},
+                "format": {"type": "string", "enum": ["text", "markdown", "html"], "description": "Output format"},
+            },
+            "required": ["title", "content"],
+        },
+    },
+    {
+        "name": "log_result",
+        "description": "Log the final result or output of the workflow.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string", "description": "The final result message"},
+            },
+            "required": ["message"],
+        },
+    },
+    {
+        "name": "check_condition",
+        "description": "Evaluate a condition to decide whether to proceed with a step. Use this for conditional branching — e.g. 'if the data contains errors' or 'if the value exceeds threshold'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "condition": {"type": "string", "description": "The condition to evaluate in plain language"},
+                "data": {"type": "string", "description": "The data or context to evaluate the condition against"},
+            },
+            "required": ["condition", "data"],
+        },
+    },
+]
+
+
+def _execute_tool(name: str, inputs: dict) -> dict:
+    """Actually execute a tool and return the result."""
+
+    if name == "fetch_url":
+        url = inputs.get("url", "")
+        method = inputs.get("method", "GET").upper()
+        if not url.startswith("http"):
+            return {"error": f"Invalid URL: {url}"}
+        try:
+            with httpx.Client(timeout=30, follow_redirects=True) as client:
+                resp = client.request(method, url)
+                try:
+                    data = resp.json()
+                except Exception:
+                    data = resp.text[:2000]
+                return {"status_code": resp.status_code, "data": data}
+        except Exception as e:
+            return {"error": str(e)}
+
+    elif name == "send_slack_message":
+        webhook = os.getenv("SLACK_WEBHOOK_URL", "")
+        channel = inputs.get("channel", "#general")
+        message = inputs.get("message", "")
+        if webhook:
+            try:
+                resp = httpx.post(webhook, json={"text": f"[{channel}] {message}"}, timeout=10)
+                return {"sent": True, "channel": channel, "status_code": resp.status_code}
+            except Exception as e:
+                return {"sent": False, "error": str(e)}
+        return {"sent": True, "simulated": True, "channel": channel, "message_preview": message[:200]}
+
+    elif name == "send_email":
+        to = inputs.get("to", "")
+        subject = inputs.get("subject", "")
+        body = inputs.get("body", "")
+        logger.info("Email (simulated) to=%s subject=%s", to, subject)
+        return {
+            "delivered": True,
+            "simulated": True,
+            "to": to,
+            "subject": subject,
+            "body_preview": body[:300],
+            "note": "Email logged locally. Connect SendGrid/SES for real delivery.",
+        }
+
+    elif name == "transform_data":
+        data = inputs.get("data", "")
+        instruction = inputs.get("instruction", "")
+        try:
+            resp = get_client().messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": (
+                    f"Transform this data according to the instruction.\n\n"
+                    f"Data: {data}\n\nInstruction: {instruction}\n\n"
+                    f"Return ONLY the transformed result as valid JSON. No explanation."
+                )}],
+            )
+            raw = next((b.text for b in resp.content if b.type == "text"), "")
+            try:
+                return {"transformed": True, "result": json.loads(raw)}
+            except json.JSONDecodeError:
+                return {"transformed": True, "result": raw.strip()}
+        except Exception as e:
+            return {"transformed": False, "error": str(e)}
+
+    elif name == "create_document":
+        title = inputs.get("title", "Untitled")
+        content = inputs.get("content", "")
+        fmt = inputs.get("format", "text")
+        return {
+            "created": True,
+            "title": title,
+            "format": fmt,
+            "content_length": len(content),
+            "content_preview": content[:500],
+        }
+
+    elif name == "log_result":
+        return {"logged": True, "message": inputs.get("message", "")}
+
+    elif name == "check_condition":
+        condition = inputs.get("condition", "")
+        data = inputs.get("data", "")
+        try:
+            resp = get_client().messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=100,
+                messages=[{"role": "user", "content": (
+                    f"Evaluate this condition and return ONLY 'true' or 'false'.\n\n"
+                    f"Condition: {condition}\n\nData: {data}"
+                )}],
+            )
+            answer = next((b.text for b in resp.content if b.type == "text"), "true").strip().lower()
+            result = answer.startswith("true")
+            return {"condition": condition, "result": result, "reason": answer}
+        except Exception as e:
+            return {"condition": condition, "result": True, "error": str(e)}
+
+    return {"error": f"Unknown tool: {name}"}
+
+
+def run_workflow_stream(description: str, workflow: dict | None = None, extra_context: str = ""):
+    """Core SSE execution loop — reused by /execute-ai and /workflows/{id}/trigger.
+
+    Yields SSE events as Claude executes the workflow step by step using tool use.
+    Supports inter-step output chaining and conditional branching via check_condition.
+    """
+    workflow_context = ""
+    if workflow:
+        workflow_context = f"\n\nWorkflow definition:\n{json.dumps(workflow, indent=2)}"
+    if extra_context:
+        workflow_context += f"\n\n{extra_context}"
+
+    system_prompt = (
+        "You are a workflow execution engine. Your job is to execute the described workflow "
+        "step by step using the tools provided. For each step:\n"
+        "1. Briefly state what you're about to do\n"
+        "2. Call the appropriate tool\n"
+        "3. After getting the result, briefly state what happened\n"
+        "4. Move to the next step\n\n"
+        "IMPORTANT: Chain step outputs — use data from earlier steps in later steps. "
+        "For example, if step 1 fetches data, pass that data to step 2's transform.\n\n"
+        "For conditional workflows, use check_condition to evaluate whether to proceed "
+        "with a branch. Skip steps when the condition is not met.\n\n"
+        "Execute all steps in logical order. Use real URLs and data when available. "
+        "When you're done with all steps, summarize what was accomplished.\n"
+        "Be concise — one sentence per explanation, then call the tool."
+    )
+
+    step_outputs = []
+    messages = [{"role": "user", "content": f"Execute this workflow:\n\n{description}{workflow_context}"}]
+    client = get_client()
+
+    for _ in range(15):
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=4096,
+                system=system_prompt,
+                tools=TOOLS,
+                messages=messages,
+            )
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            break
+
+        assistant_content = []
+        tool_results = []
+
+        for block in response.content:
+            if block.type == "text" and block.text.strip():
+                yield f"data: {json.dumps({'type': 'thinking', 'text': block.text.strip()})}\n\n"
+                assistant_content.append({"type": "text", "text": block.text})
+            elif block.type == "tool_use":
+                assistant_content.append({
+                    "type": "tool_use", "id": block.id,
+                    "name": block.name, "input": block.input,
+                })
+
+                step_num = len(step_outputs) + 1
+                yield f"data: {json.dumps({'type': 'step_start', 'tool': block.name, 'input': block.input, 'step': step_num})}\n\n"
+
+                result = _execute_tool(block.name, block.input)
+                step_outputs.append({"step": step_num, "tool": block.name, "result": result})
+
+                yield f"data: {json.dumps({'type': 'step_complete', 'tool': block.name, 'result': result, 'step': step_num})}\n\n"
+
+                chain_note = ""
+                if len(step_outputs) > 1:
+                    prev = step_outputs[-2]
+                    chain_note = f"\n\n[Previous step {prev['step']} ({prev['tool']}) returned: {json.dumps(prev['result'])[:500]}]"
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(result) + chain_note,
+                })
+
+        messages.append({"role": "assistant", "content": assistant_content})
+        if tool_results:
+            messages.append({"role": "user", "content": tool_results})
+
+        if response.stop_reason == "end_turn":
+            yield f"data: {json.dumps({'type': 'complete'})}\n\n"
+            break
+    else:
+        yield f"data: {json.dumps({'type': 'complete', 'message': 'Max steps reached'})}\n\n"
+
+
+class ExecuteAIRequest(BaseModel):
+    description: str
+    workflow: dict | None = None
+
+
+@router.post("/execute-ai")
+def execute_ai(
+    req: ExecuteAIRequest,
+    user: User = Depends(get_current_user),
+):
+    """Execute a workflow description using Claude's tool-use capability.
+
+    Returns an SSE stream of execution events (thinking, step_start,
+    step_complete, error, complete) as Claude processes each step.
+    """
+    return StreamingResponse(
+        run_workflow_stream(req.description, req.workflow),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

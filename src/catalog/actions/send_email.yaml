@@ -1,0 +1,25 @@
+action_id: send_email
+aliases:
+  - send email
+  - email
+  - send an email
+  - email the team
+  - email the report
+  - mail
+  - send mail
+  - notify via email
+required_inputs:
+  - name: to
+    type: string
+    description: Recipient email address or group
+  - name: subject
+    type: string
+    description: Email subject line
+  - name: body
+    type: string
+    description: Email body content
+outputs:
+  - name: sent
+    type: boolean
+    description: Whether the email was sent successfully
+service: email

@@ -1,0 +1,41 @@
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+db.sqlite3
+
+# Database
+data/
+
+# Logs and temp files
+*.log
+server.log
+output.txt
+
+# OS files
+.DS_Store
+**/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+# macOS duplicate files
+*\ 2.*
+*\ 2/
+
+# Django artifacts (legacy — project uses FastAPI)
+accounts/
+aut_app/
+templates/
+manage.py

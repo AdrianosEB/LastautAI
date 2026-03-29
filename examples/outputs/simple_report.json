@@ -1,0 +1,65 @@
+{
+  "name": "Weekly Sales Report",
+  "trigger": {
+    "type": "schedule",
+    "config": {
+      "cron": "0 9 * * 1",
+      "event_type": null,
+      "webhook_path": null
+    }
+  },
+  "steps": [
+    {
+      "id": "step_1",
+      "action": "fetch_data",
+      "description": "Pull the latest sales data from our CRM",
+      "inputs": {
+        "source": "CRM"
+      },
+      "outputs": {
+        "data": "object"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "step_2",
+      "action": "transform_data",
+      "description": "Summarize the sales data",
+      "inputs": {
+        "data": "${step_1.data}",
+        "operation": "summarize"
+      },
+      "outputs": {
+        "transformed_data": "object"
+      },
+      "dependencies": ["step_1"]
+    },
+    {
+      "id": "step_3",
+      "action": "send_email",
+      "description": "Email the report to the team",
+      "inputs": {
+        "to": "the team",
+        "subject": "Weekly Sales Report",
+        "body": "${step_2.transformed_data}"
+      },
+      "outputs": {
+        "sent": "boolean"
+      },
+      "dependencies": ["step_2"]
+    }
+  ],
+  "parameters": [],
+  "error_handling": {
+    "default_retry": {
+      "max_attempts": 3,
+      "backoff": "fixed",
+      "delay_seconds": 5
+    },
+    "on_failure": "stop",
+    "step_overrides": {}
+  },
+  "assumptions": [
+    "Actions are assumed to execute sequentially in the order described"
+  ]
+}

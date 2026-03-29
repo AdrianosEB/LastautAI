@@ -1,0 +1,60 @@
+{
+  "name": "CPU Alert and Service Restart",
+  "trigger": {
+    "type": "event",
+    "config": {
+      "cron": null,
+      "event_type": "cpu_usage > 90",
+      "webhook_path": null
+    }
+  },
+  "steps": [
+    {
+      "id": "step_1",
+      "action": "http_request",
+      "description": "Restart the service",
+      "inputs": {
+        "url": "service_endpoint",
+        "method": "POST"
+      },
+      "outputs": {
+        "response": "object",
+        "status_code": "number"
+      },
+      "dependencies": []
+    },
+    {
+      "id": "step_2",
+      "action": "send_notification",
+      "description": "Notify the oncall engineer",
+      "inputs": {
+        "channel": "oncall",
+        "message": "Service restarted due to high CPU usage"
+      },
+      "outputs": {
+        "sent": "boolean"
+      },
+      "dependencies": ["step_1"]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "threshold",
+      "type": "number",
+      "default": "90",
+      "description": "Parameter: threshold"
+    }
+  ],
+  "error_handling": {
+    "default_retry": {
+      "max_attempts": 3,
+      "backoff": "fixed",
+      "delay_seconds": 5
+    },
+    "on_failure": "stop",
+    "step_overrides": {}
+  },
+  "assumptions": [
+    "Actions are assumed to execute sequentially in the order described"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AmbiguityError",
+  "description": "Error response when strict_mode is true and input is ambiguous",
+  "type": "object",
+  "required": ["error", "message", "ambiguities"],
+  "properties": {
+    "error": {
+      "type": "string",
+      "const": "ambiguous_input"
+    },
+    "message": {
+      "type": "string"
+    },
+    "ambiguities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "options"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The ambiguous fragment"
+          },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Possible interpretations"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

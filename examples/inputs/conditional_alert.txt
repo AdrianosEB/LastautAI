@@ -1,0 +1,1 @@
+When CPU usage exceeds 90%, restart the service and notify the oncall engineer.
