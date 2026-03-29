@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LastautAI{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar">
+    <a class="nav-brand" href="{% url 'home' %}">LastautAI</a>
+    <div class="nav-links">
+        <a href="{% url 'monitor' %}" class="{% if request.resolver_match.url_name == 'monitor' %}active{% endif %}">Activity Monitor</a>
+        <a href="{% url 'agent_dashboard' %}" class="{% if request.resolver_match.url_name == 'agent_dashboard' %}active{% endif %}">Agents</a>
+        <a href="{% url 'logout' %}" class="nav-logout">Log Out</a>
+    </div>
+</nav>
+{% endif %}
+
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
