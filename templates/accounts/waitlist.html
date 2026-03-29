@@ -3,9 +3,20 @@
 
 {% block content %}
 <div class="auth-wrapper">
-    <div class="auth-box" style="text-align:center;">
-        <h1 style="font-size:2rem; margin-bottom:0.5rem;">Something interesting is coming soon.</h1>
-        <p style="color:#777; margin-bottom:2rem;">We're putting the finishing touches on something you'll love.</p>
+    <div class="auth-box" style="max-width:560px; text-align:center;">
+
+        <h1 style="font-size:2rem; margin-bottom:0.5rem;">LastautAI is coming soon.</h1>
+        <p style="color:#777; margin-bottom:2rem;">We're building an AI that watches how you work — and automates the boring parts for you.</p>
+
+        <div style="text-align:left; background:#f9fafb; border-radius:10px; padding:1.5rem; margin-bottom:1.75rem;">
+            <p style="font-weight:600; margin-bottom:1rem;">Here's what it'll do:</p>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.75rem; color:#444;">
+                <li>🖥️ <strong>Records your screen in the background</strong> — with your permission, it watches what apps you use and how you navigate between them.</li>
+                <li>🤖 <strong>Detects repeated workflows</strong> — using AI, it spots patterns like "every morning you open Gmail, copy a tracking number, then paste it into a spreadsheet."</li>
+                <li>⚡ <strong>Suggests automations</strong> — it surfaces those patterns as one-click automations you can approve or dismiss.</li>
+                <li>🔒 <strong>You stay in control</strong> — nothing gets automated without your approval. Your data stays on your machine.</li>
+            </ul>
+        </div>
 
         <div style="background:#f3f4f6; border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
             <p style="font-size:2rem; font-weight:700; margin:0;">{{ count }}</p>
