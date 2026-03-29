@@ -4,8 +4,8 @@
 {% block content %}
 <div style="max-width:600px; margin: 3rem auto;">
     <div class="panel">
-        <h1 style="margin-bottom:0.5rem;">Welcome, {{ request.user.username }}</h1>
-        <p style="color:#777; margin-bottom:1.5rem;">What would you like to do?</p>
+        <h1 style="margin-bottom:0.5rem; background:linear-gradient(135deg, var(--accent-light), var(--success)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Welcome, {{ request.user.username }}</h1>
+        <p style="color:var(--text-dim); margin-bottom:1.5rem;">What would you like to do?</p>
 
         <div style="display:flex; flex-direction:column; gap:0.75rem;">
             <a href="{% url 'monitor' %}" class="home-card">
@@ -28,14 +28,14 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 1rem 1.25rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     text-decoration: none;
-    color: #333;
-    transition: background 0.15s;
+    color: var(--text);
+    transition: border-color 0.2s, background 0.2s;
 }
-.home-card:hover { background: #f9fafb; }
-.home-card strong { font-size: 0.95rem; }
-.home-card span { font-size: 0.85rem; color: #777; }
+.home-card:hover { border-color: var(--accent); background: var(--surface2); }
+.home-card strong { font-size: 0.95rem; color: var(--accent-light); }
+.home-card span { font-size: 0.85rem; color: var(--text-dim); }
 </style>
 {% endblock %}

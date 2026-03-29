@@ -5,13 +5,6 @@
     flex: 1;
 }
 
-.panel {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
 .control-panel {
     flex: 1;
     display: flex;
@@ -26,81 +19,87 @@
     max-height: calc(100vh - 100px);
 }
 
-h2 { margin: 0 0 0.25rem; font-size: 1rem; color: #333; }
+h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
 
-.note { font-size: 0.85rem; color: #777; margin: 0; }
+.note { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
 
 .status-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
-    color: #555;
+    color: var(--text-dim);
 }
 
 .status-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #ccc;
+    background: var(--border);
     flex-shrink: 0;
 }
 
 .status-dot.active {
-    background: #22c55e;
-    box-shadow: 0 0 6px #22c55e;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
     animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50%       { opacity: 0.5; }
+    50%       { opacity: 0.4; }
 }
 
 button {
     padding: 0.65rem 1.25rem;
-    background: #1a1a1a;
+    background: linear-gradient(135deg, var(--accent), #7c5ce7);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 0.95rem;
+    font-weight: 600;
     width: 100%;
+    transition: all 0.2s;
 }
 
-button:hover { background: #333; }
-
-.btn-stop { background: #dc2626; }
-.btn-stop:hover { background: #b91c1c; }
-
-.warn {
-    font-size: 0.8rem;
-    color: #999;
-    border-top: 1px solid #eee;
-    padding-top: 0.75rem;
-    margin: 0;
+button:hover {
+    box-shadow: 0 4px 15px rgba(108,92,231,0.4);
+    transform: translateY(-1px);
 }
 
-.warn code {
-    background: #f1f1f1;
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
-    font-size: 0.78rem;
+.btn-stop {
+    background: linear-gradient(135deg, #e84393, #d63031);
+}
+
+.btn-stop:hover {
+    box-shadow: 0 4px 15px rgba(214,48,49,0.4);
 }
 
 /* Suggestions */
 .suggestion-card {
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    border-radius: var(--radius);
     padding: 1rem;
     margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+}
+
+.suggestion-card:hover {
+    border-color: var(--accent);
 }
 
 .suggestion-text {
     font-size: 0.9rem;
-    color: #333;
+    color: var(--text);
     margin: 0 0 0.5rem;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .suggestion-meta {
@@ -110,18 +109,18 @@ button:hover { background: #333; }
     margin-bottom: 0.5rem;
 }
 
-.suggestion-time { font-size: 0.8rem; color: #aaa; }
+.suggestion-time { font-size: 0.8rem; color: var(--text-dim); }
 
 .badge {
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
     border-radius: 99px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.badge-pending   { background: #fef9c3; color: #854d0e; }
-.badge-approved  { background: #dcfce7; color: #166534; }
-.badge-dismissed { background: #f3f4f6; color: #9ca3af; }
+.badge-pending   { background: rgba(253,203,110,0.15); color: #fdcb6e; }
+.badge-approved  { background: rgba(0,206,201,0.15);   color: var(--success); }
+.badge-dismissed { background: rgba(136,136,160,0.15); color: var(--text-dim); }
 
 .suggestion-actions {
     display: flex;
@@ -130,22 +129,35 @@ button:hover { background: #333; }
 }
 
 .btn-approve {
-    background: #16a34a;
+    background: rgba(0,206,201,0.2);
+    color: var(--success);
+    border: 1px solid rgba(0,206,201,0.3);
     padding: 0.4rem 0.85rem;
     font-size: 0.85rem;
     width: auto;
+    box-shadow: none;
 }
 
-.btn-approve:hover { background: #15803d; }
+.btn-approve:hover {
+    background: rgba(0,206,201,0.3);
+    box-shadow: none;
+    transform: none;
+}
 
 .btn-dismiss {
-    background: #e5e7eb;
-    color: #555;
+    background: rgba(136,136,160,0.1);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
     padding: 0.4rem 0.85rem;
     font-size: 0.85rem;
     width: auto;
+    box-shadow: none;
 }
 
-.btn-dismiss:hover { background: #d1d5db; }
+.btn-dismiss:hover {
+    background: rgba(136,136,160,0.2);
+    box-shadow: none;
+    transform: none;
+}
 
-.empty { color: #aaa; font-size: 0.9rem; }
+.empty { color: var(--text-dim); font-size: 0.9rem; }
