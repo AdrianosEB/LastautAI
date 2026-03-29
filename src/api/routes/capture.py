@@ -21,21 +21,39 @@ def _refine_suggestion(description: str) -> tuple[str, str]:
     """Use AI to create a short summary and a clean workflow prompt from a raw suggestion."""
     resp = _ai.messages.create(
         model="claude-haiku-4-5",
-        max_tokens=400,
-        messages=[{"role": "user", "content": f"""Given this AI-detected activity pattern:
+        max_tokens=600,
+        messages=[{"role": "user", "content": f"""You are converting a screen-activity analysis into a workflow automation prompt.
+
+Here is the AI analysis of a user's screen activity:
 
 "{description}"
 
-Return exactly two lines:
-LINE 1: A short summary (max 15 words) describing the workflow in plain language. Example: "Auto-send weekly sales report email every Monday"
-LINE 2: A clear, detailed workflow description that could be given to an automation tool to build the workflow. Be specific about triggers, steps, and actions.
+Return TWO sections separated by "---":
 
-Return ONLY the two lines, nothing else."""}],
+SECTION 1 - TITLE: A short title (max 12 words) for this workflow. Plain language, action-oriented.
+Example: "Auto-launch music and workspace when Calendar opens"
+
+---
+
+SECTION 2 - WORKFLOW PROMPT: A detailed, structured workflow description written as if you are instructing an automation tool. Include:
+- The specific TRIGGER (what starts the workflow — e.g. "When X application opens", "Every Monday at 9am")
+- Numbered STEPS with specific actions (e.g. "open URL", "launch app", "send message")
+- Any CONDITIONS or constraints (e.g. "only on weekdays between 9-5")
+- Any user overrides or fallbacks
+
+Write it as one paragraph with clear structure. Be specific about apps, URLs, and actions based on what the user was actually doing.
+
+Example output:
+Auto-launch workspace when Calendar opens
+---
+When Google Calendar application opens, trigger: (1) automatically launch YouTube Music playing a focus playlist in a background tab, (2) open the project management app in a separate window, (3) bring Calendar to foreground. Condition: only execute during weekday work hours 9 AM-5 PM. Allow manual override to disable.
+
+Now generate for the activity above. Return ONLY the title line, then "---", then the workflow prompt. Nothing else."""}],
     )
-    text = next((b.text for b in resp.content if b.type == "text"), "")
-    lines = [l.strip() for l in text.strip().split("\n") if l.strip()]
-    summary = lines[0] if lines else description[:100]
-    refined = lines[1] if len(lines) > 1 else description
+    text = next((b.text for b in resp.content if b.type == "text"), "").strip()
+    parts = text.split("---", 1)
+    summary = parts[0].strip().strip('"') if parts else description[:100]
+    refined = parts[1].strip() if len(parts) > 1 else description
     return summary, refined
 
 
