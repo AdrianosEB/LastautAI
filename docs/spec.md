@@ -308,7 +308,69 @@ The UI includes client-side conversion from the LastautAI workflow schema to n8n
 
 Trigger mapping: `schedule` → `scheduleTrigger`, `webhook` → `webhook`, others → `manualTrigger`.
 
-## 10. Milestones
+## 10. User Accounts and Database
+
+### 10.1 Database
+
+SQLite via SQLAlchemy, stored at `data/lastautai.db`. Chosen for simplicity — no external database server required.
+
+### 10.2 Schema
+
+#### `users` table
+
+| Column        | Type         | Constraints              |
+|---------------|--------------|--------------------------|
+| `id`          | INTEGER      | PRIMARY KEY, AUTOINCREMENT |
+| `username`    | VARCHAR(50)  | UNIQUE, NOT NULL         |
+| `email`       | VARCHAR(255) | UNIQUE, NOT NULL         |
+| `password_hash` | VARCHAR(255) | NOT NULL               |
+| `created_at`  | DATETIME     | DEFAULT now              |
+
+#### `workflows` table
+
+| Column          | Type         | Constraints              |
+|-----------------|--------------|--------------------------|
+| `id`            | INTEGER      | PRIMARY KEY, AUTOINCREMENT |
+| `user_id`       | INTEGER      | FOREIGN KEY → users.id   |
+| `name`          | VARCHAR(255) | NOT NULL                 |
+| `description`   | TEXT         | NOT NULL (original NL input) |
+| `workflow_json` | TEXT         | NOT NULL (generated JSON) |
+| `n8n_id`        | VARCHAR(100) | NULL (set if deployed)   |
+| `created_at`    | DATETIME     | DEFAULT now              |
+
+### 10.3 Authentication
+
+- **Signup**: `POST /auth/signup` — username, email, password → creates user, returns JWT
+- **Login**: `POST /auth/login` — username, password → returns JWT
+- **JWT**: Signed with a server-side secret (`AUTH_SECRET` env var), 24h expiry
+- **Password hashing**: bcrypt via `passlib`
+- **Protected routes**: All `/workflows/*` and `/n8n/*` endpoints require `Authorization: Bearer <token>` header
+
+### 10.4 API Changes
+
+| Endpoint                       | Auth Required | Change                                      |
+|--------------------------------|---------------|----------------------------------------------|
+| `POST /auth/signup`            | No            | New — create user account                    |
+| `POST /auth/login`             | No            | New — authenticate and receive JWT           |
+| `GET /auth/me`                 | Yes           | New — return current user info               |
+| `POST /workflows/generate-steps` | Yes         | Now saves workflow to user's account         |
+| `POST /n8n/deploy`             | Yes           | Now records n8n_id on the saved workflow     |
+| `GET /workflows/history`       | Yes           | New — list user's saved workflows            |
+| `GET /workflows/{id}`         | Yes           | New — retrieve a specific saved workflow     |
+
+### 10.5 Dashboard UI
+
+The UI transitions from a single-page tool to an authenticated dashboard:
+
+| Section               | Status     | Description                                          |
+|-----------------------|------------|------------------------------------------------------|
+| Login / Signup        | Phase 7    | Gate access to the app                               |
+| Create Workflow       | Existing   | The current type-in + generate + deploy flow         |
+| My Workflows          | Phase 7    | List of previously generated workflows per user      |
+| Record                | Placeholder | Future: record actions to auto-generate workflows   |
+| Suggested Workflows   | Placeholder | Future: AI-suggested workflows based on patterns    |
+
+## 11. Milestones
 
 | Phase | Deliverable                                                        |
 |-------|--------------------------------------------------------------------|
@@ -318,3 +380,4 @@ Trigger mapping: `schedule` → `scheduleTrigger`, `webhook` → `webhook`, othe
 | 4     | Serializer and API — end-to-end workflow generation via REST       |
 | 5     | Validation endpoint, golden test suite, and documentation          |
 | 6     | Web UI with step-by-step visualization and n8n export              |
+| 7     | User accounts, database, workflow history, and dashboard           |

@@ -2,9 +2,14 @@ import logging
 import uuid
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from src.auth.dependencies import get_optional_user
+from src.db.database import get_db
+from src.db.models import User, Workflow
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +20,7 @@ class DeployRequest(BaseModel):
     n8n_url: str
     api_key: str
     workflow: dict
+    saved_id: int | None = None  # ID of the saved workflow to update with n8n_id
 
 
 def _ensure_node_ids(workflow: dict) -> dict:
@@ -26,7 +32,11 @@ def _ensure_node_ids(workflow: dict) -> dict:
 
 
 @router.post("/deploy")
-async def deploy_to_n8n(request: DeployRequest):
+async def deploy_to_n8n(
+    request: DeployRequest,
+    user: User | None = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+):
     """Proxy the workflow to an n8n instance via its REST API."""
     url = request.n8n_url.rstrip("/") + "/api/v1/workflows"
 
@@ -50,11 +60,23 @@ async def deploy_to_n8n(request: DeployRequest):
         logger.info("n8n response status=%d body=%s", resp.status_code, data)
 
         if resp.status_code in (200, 201):
+            n8n_id = data.get("id")
+
+            # Update saved workflow with n8n_id
+            if user and request.saved_id and n8n_id:
+                w = db.query(Workflow).filter(
+                    Workflow.id == request.saved_id,
+                    Workflow.user_id == user.id,
+                ).first()
+                if w:
+                    w.n8n_id = str(n8n_id)
+                    db.commit()
+
             return {
-                "id": data.get("id"),
+                "id": n8n_id,
                 "name": data.get("name"),
                 "active": data.get("active", False),
-                "url": f"{request.n8n_url.rstrip('/')}/workflow/{data.get('id')}",
+                "url": f"{request.n8n_url.rstrip('/')}/workflow/{n8n_id}",
             }
         else:
             return JSONResponse(

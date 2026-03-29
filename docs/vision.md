@@ -77,9 +77,32 @@ Users see each processing stage (Parser, Analyzer, Planner, Serializer) execute 
 - **Export-ready** — Output is not just viewable but immediately actionable in real automation tools
 - **Zero setup** — The UI is served directly by the FastAPI backend at `/`, no separate frontend build required
 
+## User Accounts and Workflow History
+
+The system supports individual user accounts so that each person's workflows are saved, retrievable, and tied to their identity.
+
+### Authentication
+- Users sign up with username, email, and password
+- Passwords are hashed with bcrypt — never stored in plaintext
+- Sessions are managed via JWT tokens stored in the browser
+- All workflow endpoints require authentication
+
+### Per-User Workflow Storage
+- Every generated workflow is saved to the user's account automatically
+- Users can view, re-export, or re-deploy any past workflow from their dashboard
+- Workflow history includes the original natural language description, the generated JSON, and any n8n deployment IDs
+
+### Dashboard Experience
+The authenticated user lands on a dashboard with three sections:
+
+1. **Record** — (future) Record actions to auto-generate workflows from observed behavior
+2. **Suggested Workflows** — (future) AI-suggested workflows based on usage patterns
+3. **Create Workflow** — The existing type-in + generate + deploy flow
+
 ## Success Criteria
 
 - A plain-language description produces a correct, complete workflow definition on the first attempt for common use cases.
 - Ambiguities are flagged with clear assumptions, not silently resolved.
 - Generated workflows are valid structured data that can be loaded by a workflow engine without manual editing.
 - The web UI shows each pipeline stage and produces output that can be directly imported into n8n or similar tools.
+- Users can sign up, log in, and access their previously generated workflows.
