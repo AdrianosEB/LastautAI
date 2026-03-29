@@ -564,7 +564,17 @@ In addition to generating workflow definitions, the system can execute workflows
 - `error` — execution error
 - `complete` — workflow finished
 
-### 13.6 UI
+### 13.6 Webhook Triggers
+
+Saved workflows can be executed via external HTTP POST to `POST /workflows/{id}/trigger`.
+
+- No authentication required (webhook endpoint for external callers)
+- Accepts JSON payload as triggering context
+- Reuses the same SSE execution loop as `/execute-ai` via `run_workflow_stream()`
+- Payload is injected into Claude's context so it can use the triggering data
+- History endpoint includes `has_webhook` flag for workflows with webhook/event triggers
+
+### 13.7 UI
 
 A full-screen overlay displays the execution feed with animated step cards, showing each tool call, its inputs, and results in real time.
 
