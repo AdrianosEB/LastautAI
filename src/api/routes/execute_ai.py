@@ -4,9 +4,12 @@ Streams progress back to the frontend via SSE.
 """
 
 import json
+import logging
 import os
 
 import anthropic
+
+logger = logging.getLogger(__name__)
 import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -128,27 +131,51 @@ def _execute_tool(name: str, inputs: dict) -> dict:
         return {"sent": True, "simulated": True, "channel": channel, "message_preview": message[:200]}
 
     elif name == "send_email":
+        to = inputs.get("to", "")
+        subject = inputs.get("subject", "")
+        body = inputs.get("body", "")
+        logger.info("Email (simulated) to=%s subject=%s", to, subject)
         return {
-            "sent": True,
+            "delivered": True,
             "simulated": True,
-            "to": inputs.get("to", ""),
-            "subject": inputs.get("subject", ""),
-            "body_preview": inputs.get("body", "")[:200],
+            "to": to,
+            "subject": subject,
+            "body_preview": body[:300],
+            "note": "Email logged locally. Connect SendGrid/SES for real delivery.",
         }
 
     elif name == "transform_data":
-        return {
-            "transformed": True,
-            "instruction": inputs.get("instruction", ""),
-            "result": f"Data transformed: {inputs.get('instruction', 'no instruction')}",
-        }
+        data = inputs.get("data", "")
+        instruction = inputs.get("instruction", "")
+        try:
+            ai = anthropic.Anthropic()
+            resp = ai.messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": (
+                    f"Transform this data according to the instruction.\n\n"
+                    f"Data: {data}\n\nInstruction: {instruction}\n\n"
+                    f"Return ONLY the transformed result as valid JSON. No explanation."
+                )}],
+            )
+            raw = next((b.text for b in resp.content if b.type == "text"), "")
+            try:
+                return {"transformed": True, "result": json.loads(raw)}
+            except json.JSONDecodeError:
+                return {"transformed": True, "result": raw.strip()}
+        except Exception as e:
+            return {"transformed": False, "error": str(e)}
 
     elif name == "create_document":
+        title = inputs.get("title", "Untitled")
+        content = inputs.get("content", "")
+        fmt = inputs.get("format", "text")
         return {
             "created": True,
-            "title": inputs.get("title", ""),
-            "format": inputs.get("format", "text"),
-            "content_preview": inputs.get("content", "")[:300],
+            "title": title,
+            "format": fmt,
+            "content_length": len(content),
+            "content_preview": content[:500],
         }
 
     elif name == "log_result":

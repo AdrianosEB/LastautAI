@@ -85,12 +85,15 @@ Natural language descriptions are processed through:
 
 ### AI Execution (Run with AI)
 Claude executes workflows live using tool use. Available tools:
-- `fetch_url` — real HTTP requests
-- `send_slack_message` — posts to Slack via webhook
-- `send_email` — email delivery (simulated)
-- `transform_data` — data processing
-- `create_document` — generate reports/summaries
-- `log_result` — final output logging
+
+| Tool | Status | Details |
+|------|--------|---------|
+| `fetch_url` | Real | Makes actual HTTP requests to any URL |
+| `send_slack_message` | Real | Posts to Slack via webhook (requires `SLACK_WEBHOOK_URL`) |
+| `transform_data` | Real | Uses Claude to process/transform data |
+| `send_email` | Simulated | Logs email details locally. Connect SendGrid/SES for production |
+| `create_document` | Real | Generates document content |
+| `log_result` | Real | Logs final workflow output |
 
 ### n8n Integration
 Deploy generated workflows directly to any n8n instance via its REST API. Workflows are converted to n8n node format with proper connections and triggers.
@@ -164,7 +167,7 @@ Deploy generated workflows directly to any n8n instance via its REST API. Workfl
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key |
-| `SLACK_WEBHOOK_URL` | No | Slack incoming webhook for AI execution |
+| `SLACK_WEBHOOK_URL` | No | Slack incoming webhook for `send_slack_message` tool (simulated if not set) |
 | `JWT_SECRET` | No | JWT signing secret (auto-generated if not set) |
 
 ## Tech Stack
